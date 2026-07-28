@@ -1,0 +1,290 @@
+@import 'tailwindcss';
+
+/*
+ * Skema warna RintisUlang — kombinasi #A90E02 (brand-600) dan #FFFBD4 (cream-100).
+ *
+ * Aturan pemakaian:
+ * - cream  : latar halaman dan kartu lembut. Ini yang mendominasi layar.
+ * - brand  : identitas dan aksi (tombol, judul, angka utama). BUKAN penanda bahaya —
+ *            jangan pakai brand untuk "menuduh" angka utang user.
+ * - sage   : progres positif, konfirmasi privasi, milestone lunas.
+ * - cream-300/400 + ink: blok "perlu perhatian", menggantikan merah kedua.
+ *
+ * Kontras #A90E02 di atas #FFFBD4 = 7.3:1 (lolos WCAG AA untuk teks normal).
+ */
+@theme {
+  --color-brand-50: #fdf3f1;
+  --color-brand-100: #fbe1db;
+  --color-brand-200: #f6c1b6;
+  --color-brand-300: #ec9583;
+  --color-brand-400: #dd6149;
+  --color-brand-500: #c8341c;
+  --color-brand-600: #a90e02;
+  --color-brand-700: #8b1005;
+  --color-brand-800: #71140b;
+  --color-brand-900: #5e150e;
+  --color-brand-950: #370703;
+
+  --color-cream-50: #fffef3;
+  --color-cream-100: #fffbd4;
+  --color-cream-200: #fdf3ae;
+  --color-cream-300: #f7e67f;
+  --color-cream-400: #ead24f;
+  --color-cream-500: #d4b62f;
+  --color-cream-600: #b09020;
+  --color-cream-700: #8a6d1c;
+  --color-cream-800: #6d551d;
+  --color-cream-900: #5c471d;
+
+  --color-sage-50: #f4f7ec;
+  --color-sage-100: #e6edd5;
+  --color-sage-200: #cedcaf;
+  --color-sage-300: #aec382;
+  --color-sage-400: #8da65c;
+  --color-sage-500: #6f8a42;
+  --color-sage-600: #556d32;
+  --color-sage-700: #43552a;
+  --color-sage-800: #384526;
+  --color-sage-900: #303b22;
+
+  /* Netral hangat agar menyatu dengan krem, bukan abu-abu biru yang dingin. */
+  --color-ink-50: #faf8f0;
+  --color-ink-100: #f0ebdc;
+  --color-ink-200: #dfd8c4;
+  --color-ink-300: #c0b7a0;
+  --color-ink-400: #948b76;
+  --color-ink-500: #6f6757;
+  --color-ink-600: #574f41;
+  --color-ink-700: #453f34;
+  --color-ink-800: #37322a;
+  --color-ink-900: #2b2721;
+  --color-ink-950: #1a1712;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  /* Judul memakai huruf yang sedikit lebih tegas supaya hierarki terbaca cepat. */
+  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui,
+    -apple-system, 'Segoe UI', sans-serif;
+
+  /*
+   * Bayangan hangat — memakai cokelat ink, bukan hitam netral, supaya kartu
+   * terasa duduk di atas kertas krem alih-alih mengambang di atas abu-abu.
+   */
+  --shadow-soft: 0 1px 2px rgb(55 50 42 / 0.04), 0 6px 16px -8px rgb(55 50 42 / 0.1);
+  --shadow-lift: 0 2px 4px rgb(55 50 42 / 0.05), 0 18px 34px -18px rgb(55 50 42 / 0.28);
+  --shadow-brand: 0 10px 30px -12px rgb(113 20 11 / 0.5);
+
+  --animate-rise: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-float: float 11s ease-in-out infinite;
+  --animate-drift: drift 16s ease-in-out infinite;
+  --animate-count-in: count-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-18px) scale(1.04);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(24px, -18px) scale(1.06);
+  }
+  66% {
+    transform: translate(-18px, 14px) scale(0.96);
+  }
+}
+
+@keyframes count-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream-100 text-ink-800 antialiased;
+    /*
+     * Tekstur titik sangat halus di atas krem — memberi kesan kertas supaya
+     * layar besar tidak terasa sebagai bidang warna datar yang kosong.
+     */
+    background-image: radial-gradient(rgb(148 139 118 / 0.14) 1px, transparent 1px);
+    background-size: 22px 22px;
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    @apply bg-brand-600 text-cream-50;
+  }
+
+  /* Sembunyikan spinner input number — nominal rupiah diketik manual */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  /* Scrollbar ikut palet hangat, bukan abu-abu bawaan sistem. */
+  * {
+    scrollbar-color: var(--color-ink-300) transparent;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink-300);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-400);
+  }
+}
+
+/*
+ * Utility kustom didaftarkan lewat @utility (bukan @layer components) supaya
+ * bisa dipakai ulang di dalam @apply — mis. .field-input memakai focus-ring.
+ */
+@utility focus-ring {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100;
+}
+
+/* Blok "perlu perhatian" — hangat, bukan alarm. */
+@utility attention-note {
+  @apply rounded-lg border-l-4 border-cream-500 bg-cream-200/70 px-3 py-2 text-ink-700;
+}
+
+/*
+ * Noda warna besar yang di-blur di latar hero. Dipakai sebagai elemen
+ * dekoratif (aria-hidden) — tidak boleh memuat informasi.
+ */
+@utility aurora-blob {
+  @apply pointer-events-none absolute rounded-full blur-3xl;
+}
+
+/* Permukaan kartu premium: gradasi krem tipis + garis dalam yang terang. */
+@utility surface-card {
+  background-image: linear-gradient(
+    160deg,
+    var(--color-cream-50) 0%,
+    #ffffff 55%,
+    var(--color-cream-50) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    var(--shadow-soft);
+}
+
+/* Kartu brand: gradasi merah + kilau lembut di sudut kiri atas. */
+@utility surface-brand {
+  background-image:
+    radial-gradient(120% 90% at 12% 0%, rgb(255 251 212 / 0.22) 0%, transparent 55%),
+    linear-gradient(
+      150deg,
+      var(--color-brand-500) 0%,
+      var(--color-brand-700) 60%,
+      var(--color-brand-800) 100%
+    );
+  box-shadow: var(--shadow-brand);
+}
+
+/* Angkat kartu sedikit saat hover — sinyal "ini bisa diklik". */
+@utility lift {
+  @apply transition duration-300 ease-out;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Gaya dasar seluruh input teks/tanggal/select supaya konsisten satu bentuk. */
+@utility field-input {
+  @apply focus-ring w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 shadow-inner transition placeholder:text-ink-300 hover:border-ink-300 focus:border-brand-400;
+}
+
+/* Baris yang bisa digeser tanpa scrollbar terlihat (nav langkah di mobile). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    110deg,
+    var(--color-brand-700) 0%,
+    var(--color-brand-500) 45%,
+    var(--color-brand-700) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hormati preferensi sistem — animasi dekoratif dimatikan total. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .lift:hover {
+    transform: none;
+  }
+}
