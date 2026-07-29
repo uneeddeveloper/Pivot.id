@@ -7,9 +7,9 @@ export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '@sidebase/nuxt-auth'],
 
   auth: {
-    // baseURL HARUS mengarah ke /api/auth — path di mana NuxtAuthHandler terdaftar.
-    // AUTH_ORIGIN di .env untuk override di production.
-    baseURL: (process.env.AUTH_ORIGIN ?? 'http://localhost:3000') + '/api/auth',
+    // Pada Vercel, WAJIB set Environment Variable:
+    // AUTH_ORIGIN = https://<domain-vercel>.vercel.app
+    // AUTH_SECRET = <string-acak>
     provider: {
       type: 'authjs',
     },
