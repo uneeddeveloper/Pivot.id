@@ -111,7 +111,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const skills = await loadSkills()
+  // Dibungkus: kegagalan MySQL di sini pernah lolos sebagai 500 mentah, dan
+  // user cuma melihat "Internal Server Error" di tengah percakapan.
+  const skills = await loadSkills().catch((error: unknown) => {
+    throw catalogUnavailableError(error, 'Katalog keterampilan')
+  })
+
   const knownIds = new Set(skills.map((skill) => skill.id))
   const catalog = skills.map((skill) => `${skill.id} = ${skill.label} (${skill.category})`).join('\n')
 

@@ -69,7 +69,9 @@ export default defineEventHandler(async (event): Promise<JobSearchResponse> => {
   let roleId: string | null = null
 
   if (body.roleId) {
-    const roles = await loadRoles()
+    const roles = await loadRoles().catch((error: unknown) => {
+      throw catalogUnavailableError(error, 'Katalog peran')
+    })
     const role = roles.find((item) => item.id === body.roleId)
     if (!role) {
       throw createError({ statusCode: 404, statusMessage: 'Peran tidak ditemukan di katalog' })

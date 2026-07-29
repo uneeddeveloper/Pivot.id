@@ -18,18 +18,6 @@ export default defineEventHandler(async (): Promise<{ skills: Skill[]; roles: Ro
       roles: roles.map(({ searchQuery: _searchQuery, ...role }) => role),
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-
-    throw createError({
-      statusCode: 503,
-      statusMessage: 'Katalog tidak bisa dibaca',
-      data: {
-        message: message.includes('ECONNREFUSED')
-          ? 'Database tidak bisa dihubungi. Pastikan MySQL berjalan lalu jalankan `npm run db:setup`.'
-          : message.includes("doesn't exist")
-            ? 'Tabel katalog belum dibuat. Jalankan `npm run db:setup`.'
-            : `Gagal membaca katalog: ${message}`,
-      },
-    })
+    throw catalogUnavailableError(error)
   }
 })

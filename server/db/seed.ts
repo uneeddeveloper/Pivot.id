@@ -1,5 +1,6 @@
 /**
- * Mengisi tabel katalog (`skills`, `roles`, dan relasinya) dari `catalog-seed.ts`.
+ * Mengisi tabel katalog (`skills`, `roles`, `gigs`, dan relasinya) dari
+ * `catalog-seed.ts` dan `gig-seed.ts`.
  *
  *   npm run db:seed
  *
@@ -12,6 +13,7 @@
 import mysql from 'mysql2/promise'
 import { mysqlConfigFromEnv } from './config'
 import { ROLE_SEED, SKILL_SEED } from './catalog-seed'
+import { GIG_SEED } from './gig-seed'
 
 async function main() {
   const config = mysqlConfigFromEnv()
@@ -94,6 +96,70 @@ async function main() {
       }
     }
     console.log(`✓ ${ROLE_SEED.length} peran kerja`)
+
+    // ── Micro-gig (langkah 5) ───────────────────────────────────────────────
+    for (const [index, gig] of GIG_SEED.entries()) {
+      await conn.execute(
+        `INSERT INTO gigs (
+           id, title, category, earn_min, earn_max, unit, hours_per_unit,
+           max_units_per_week, days_to_first_pay, startup_cost, remote_friendly,
+           description, how_to_start, caution, sort_order
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           title = VALUES(title),
+           category = VALUES(category),
+           earn_min = VALUES(earn_min),
+           earn_max = VALUES(earn_max),
+           unit = VALUES(unit),
+           hours_per_unit = VALUES(hours_per_unit),
+           max_units_per_week = VALUES(max_units_per_week),
+           days_to_first_pay = VALUES(days_to_first_pay),
+           startup_cost = VALUES(startup_cost),
+           remote_friendly = VALUES(remote_friendly),
+           description = VALUES(description),
+           how_to_start = VALUES(how_to_start),
+           caution = VALUES(caution),
+           sort_order = VALUES(sort_order)`,
+        [
+          gig.id,
+          gig.title,
+          gig.category,
+          gig.earnMin,
+          gig.earnMax,
+          gig.unit,
+          gig.hoursPerUnit,
+          gig.maxUnitsPerWeek,
+          gig.daysToFirstPay,
+          gig.startupCost,
+          gig.remoteFriendly ? 1 : 0,
+          gig.description,
+          gig.howToStart,
+          gig.caution,
+          index,
+        ],
+      )
+
+      await conn.execute('DELETE FROM gig_skills WHERE gig_id = ?', [gig.id])
+      for (const [order, skillId] of gig.skills.entries()) {
+        await conn.execute(
+          'INSERT IGNORE INTO gig_skills (gig_id, skill_id, sort_order) VALUES (?, ?, ?)',
+          [gig.id, skillId, order],
+        )
+      }
+
+      // Kanal ditulis ulang seluruhnya, alasannya sama dengan alias skill:
+      // kanal yang dihapus dari benih tidak boleh tertinggal di database dan
+      // mengirim user ke platform yang sudah tidak dipakai.
+      await conn.execute('DELETE FROM gig_channels WHERE gig_id = ?', [gig.id])
+      for (const [order, channel] of gig.channels.entries()) {
+        await conn.execute(
+          `INSERT INTO gig_channels (gig_id, name, search_query, kind, sort_order)
+           VALUES (?, ?, ?, ?, ?)`,
+          [gig.id, channel.name, channel.searchQuery, channel.kind, order],
+        )
+      }
+    }
+    console.log(`✓ ${GIG_SEED.length} micro-gig`)
 
     await conn.commit()
   } catch (error) {

@@ -1,0 +1,345 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useCareerStore } from '~/stores/career'
+import { useCatalogStore } from '~/stores/catalog'
+import { useFinancialStore } from '~/stores/financial'
+import { useGigStore } from '~/stores/gigs'
+
+/**
+ * Langkah 5 — Penghasilan Cepat.
+ *
+ * KENAPA LANGKAH INI ADA
+ *   Lamaran kerja tetap butuh dua sampai enam minggu sampai dijawab. Cicilan
+ *   tidak menunggu selama itu. Langkah 4 menjawab "kerja apa yang menutup
+ *   kebutuhan bulananku"; halaman ini menjawab pertanyaan yang jauh lebih
+ *   mendesak: "apa yang bisa menghasilkan uang minggu ini, dengan yang sudah
+ *   kupunya sekarang".
+ *
+ * PRIVASI — INI HALAMAN PALING KETAT DI SELURUH APLIKASI
+ *   Satu-satunya permintaan jaringan di sini adalah GET /api/gigs dan
+ *   GET /api/catalog, keduanya hanya membaca katalog publik. Kebutuhan rupiah
+ *   dan jam yang tersedia — yang berasal dari data utang user — tidak pernah
+ *   dikirim ke mana pun. Seluruh pencocokan dan penyusunan rencana berjalan di
+ *   browser lewat `composables/useGigPlanner.ts`. Jangan menambahkan endpoint
+ *   yang menerima `need` atau `hoursAvailable`.
+ */
+
+useHead({ title: 'Penghasilan Cepat — Pivot' })
+
+const financial = useFinancialStore()
+const career = useCareerStore()
+const catalog = useCatalogStore()
+const gigStore = useGigStore()
+
+// Katalog skill dibutuhkan untuk menampilkan label keterampilan di tiap kartu.
+await useAsyncData('catalog', () => catalog.load())
+await useAsyncData('gigs', () => gigStore.load())
+
+// ── Masukan user ────────────────────────────────────────────────────────────
+
+/** Dimulai dari cicilan terdekat kalau memang ada — bukan dari angka kosong. */
+const need = ref(financial.dueThisWeek)
+const hoursAvailable = ref(14)
+
+/**
+ * Pintasan dari hasil langkah 1. Yang bernilai 0 dibuang: tombol yang mengisi
+ * nol hanya membuat user mengira ia salah menekan.
+ */
+const presets = computed(() => {
+  const items: { label: string; value: number; hint: string }[] = []
+
+  if (financial.dueThisWeek > 0) {
+    items.push({
+      label: 'Cicilan 7 hari ke depan',
+      value: financial.dueThisWeek,
+      hint: 'Yang paling mendesak',
+    })
+  }
+
+  if (financial.livingCost > 0) {
+    items.push({
+      label: 'Biaya hidup 1 minggu',
+      value: Math.round(financial.livingCost / 4),
+      hint: 'Supaya minggu ini aman',
+    })
+  }
+
+  if (financial.summary.targetIncome > 0) {
+    items.push({
+      label: 'Target Income 1 bulan',
+      value: financial.summary.targetIncome,
+      hint: 'Kalau ingin ditutup dari gig saja',
+    })
+  }
+
+  return items
+})
+
+// ── Batasan ─────────────────────────────────────────────────────────────────
+
+const category = ref<string>('')
+const noCapitalOnly = ref(false)
+const remoteOnly = ref(false)
+
+const allMatches = computed(() =>
+  matchGigs(gigStore.gigs, career.ownedSkills, need.value, hoursAvailable.value),
+)
+
+/**
+ * Batasan berlaku untuk rencana DAN daftar. "Tanpa modal" dan "dari rumah"
+ * bukan preferensi tampilan — keduanya menentukan apa yang benar-benar bisa
+ * dikerjakan user, jadi rencana yang mengabaikannya tidak ada gunanya.
+ */
+const matches = computed(() =>
+  allMatches.value.filter((match) => {
+    if (category.value && match.gig.category !== category.value) return false
+    if (noCapitalOnly.value && match.gig.startupCost > 0) return false
+    if (remoteOnly.value && !match.gig.remoteFriendly) return false
+    return true
+  }),
+)
+
+const plan = computed(() => buildGigPlan(matches.value, need.value, hoursAvailable.value))
+
+/** Berapa yang benar-benar bisa dimulai hari ini juga: tanpa modal, skill sudah ada. */
+const readyNowCount = computed(
+  () =>
+    matches.value.filter((match) => match.gig.startupCost === 0 && match.coverage >= 0.5).length,
+)
+
+const hasSkills = computed(() => career.ownedSkills.length > 0)
+
+function resetFilters() {
+  category.value = ''
+  noCapitalOnly.value = false
+  remoteOnly.value = false
+}
+</script>
+
+<template>
+  <div class="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+    <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72">
+      <div class="aurora-blob -top-28 -left-20 h-72 w-72 animate-float bg-cream-300/40" />
+      <div class="aurora-blob -top-16 right-0 h-64 w-64 bg-sage-200/40" />
+    </div>
+
+    <header class="animate-rise flex items-start justify-between gap-6">
+      <div class="max-w-2xl">
+        <StepProgress :current="5" class="max-w-md" />
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+          Penghasilan cepat sambil menunggu
+        </h1>
+        <p class="mt-3 text-sm leading-relaxed text-ink-600 sm:text-base">
+          Lamaran kerja biasanya baru dijawab dua sampai enam minggu. Cicilan tidak menunggu selama
+          itu. Di sini kita cari yang bisa menghasilkan uang minggu ini — dengan keterampilan yang
+          sudah kamu punya sekarang, bukan yang harus dipelajari dulu.
+        </p>
+      </div>
+
+      <!-- `lari`: bergerak sekarang. Pose yang sama dipakai di ajakan penutup landing. -->
+      <MascotFigure pose="lari" size="md" float eager class="hidden self-center lg:block" />
+    </header>
+
+    <!-- ── Kesiapan data ────────────────────────────────────────────────── -->
+    <BaseCard v-if="gigStore.error" tone="soft" class="mt-8">
+      <p class="text-sm leading-relaxed text-ink-700">{{ gigStore.error }}</p>
+    </BaseCard>
+
+    <template v-else>
+      <div class="mt-8">
+        <PrivacyNote>
+          Halaman ini <strong class="font-semibold">tidak mengirim apa pun</strong> ke server selain
+          permintaan membaca katalog. Angka kebutuhan dan jam kerjamu dihitung sepenuhnya di
+          perangkat ini.
+        </PrivacyNote>
+      </div>
+
+      <!-- ── Kebutuhan & waktu ──────────────────────────────────────────── -->
+      <div class="mt-6">
+        <GigNeedForm
+          v-model:need="need"
+          v-model:hours-available="hoursAvailable"
+          :presets="presets"
+        />
+      </div>
+
+      <BaseCard v-if="!hasSkills" tone="soft" class="mt-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="font-semibold text-ink-900">Keterampilanmu belum terdata</p>
+            <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600">
+              Daftarnya tetap bisa dibaca. Tapi begitu langkah 2 selesai, gig yang keterampilannya
+              sudah kamu punya akan naik ke urutan atas — dan itu yang paling cepat menghasilkan.
+            </p>
+          </div>
+          <BaseButton to="/skill-gap" variant="ghost" class="shrink-0">
+            Isi di langkah 2
+          </BaseButton>
+        </div>
+      </BaseCard>
+
+      <!-- ── Batasan ────────────────────────────────────────────────────── -->
+      <section class="mt-6" aria-label="Batasi pilihan gig">
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            class="focus-ring rounded-full border px-3 py-1.5 text-xs font-medium transition"
+            :class="
+              category === ''
+                ? 'border-brand-200 bg-brand-50 text-brand-700'
+                : 'border-ink-200 bg-white/70 text-ink-600 hover:border-ink-300'
+            "
+            :aria-pressed="category === ''"
+            @click="category = ''"
+          >
+            Semua jenis
+          </button>
+          <button
+            v-for="item in gigStore.categories"
+            :key="item"
+            type="button"
+            class="focus-ring rounded-full border px-3 py-1.5 text-xs font-medium transition"
+            :class="
+              category === item
+                ? 'border-brand-200 bg-brand-50 text-brand-700'
+                : 'border-ink-200 bg-white/70 text-ink-600 hover:border-ink-300'
+            "
+            :aria-pressed="category === item"
+            @click="category = item"
+          >
+            {{ item }}
+          </button>
+
+          <span class="mx-1 hidden h-5 w-px bg-ink-200 sm:block" />
+
+          <label
+            class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200 bg-white/70 px-3 py-1.5 text-xs text-ink-600"
+          >
+            <input
+              v-model="noCapitalOnly"
+              type="checkbox"
+              class="focus-ring h-3.5 w-3.5 rounded border-ink-300 accent-brand-600"
+            />
+            Tanpa modal saja
+          </label>
+          <label
+            class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200 bg-white/70 px-3 py-1.5 text-xs text-ink-600"
+          >
+            <input
+              v-model="remoteOnly"
+              type="checkbox"
+              class="focus-ring h-3.5 w-3.5 rounded border-ink-300 accent-brand-600"
+            />
+            Bisa dari rumah saja
+          </label>
+        </div>
+      </section>
+
+      <!-- ── Rencana ────────────────────────────────────────────────────── -->
+      <section v-if="need > 0" class="mt-6">
+        <GigPlanSummary :plan="plan" />
+      </section>
+
+      <BaseCard v-else tone="soft" class="mt-6">
+        <div class="flex items-center gap-4">
+          <MascotFigure pose="tidur" size="sm" class="hidden sm:block" />
+          <p class="text-sm leading-relaxed text-ink-600">
+            Isi dulu <strong class="font-semibold">berapa yang harus terkumpul</strong> di atas.
+            Dari angka itu kami susun kombinasi gig yang menutupinya, lengkap dengan berapa jam
+            kerjanya. Daftar lengkapnya tetap bisa kamu baca di bawah.
+          </p>
+        </div>
+      </BaseCard>
+
+      <!-- ── Peringatan penipuan ────────────────────────────────────────── -->
+      <div
+        class="mt-6 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 text-sm leading-relaxed text-brand-800"
+      >
+        <p class="flex items-center gap-2 font-semibold">
+          <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M8.5 2.7a1.7 1.7 0 0 1 3 0l6 10.6c.65 1.15-.18 2.6-1.5 2.6H4a1.7 1.7 0 0 1-1.5-2.6l6-10.6ZM10 7a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3A.75.75 0 0 1 10 7Zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Satu aturan yang tidak ada pengecualiannya
+        </p>
+        <p class="mt-1.5 text-brand-800/90">
+          Pekerjaan yang sah <strong class="font-semibold">tidak pernah meminta uang</strong> dari
+          orang yang mau bekerja. Biaya pendaftaran, biaya seragam, deposit, "biaya administrasi",
+          atau paket modal awal yang harus dibeli dulu — semuanya penipuan, sebesar apa pun
+          bayaran yang dijanjikan. Orang yang sedang butuh uang justru yang paling sering
+          disasar dengan cara ini.
+        </p>
+      </div>
+
+      <!-- ── Daftar gig ─────────────────────────────────────────────────── -->
+      <section class="mt-10">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-ink-900">
+              {{ matches.length }} pekerjaan lepas
+            </h2>
+            <p class="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-500">
+              Diurutkan dari yang paling bisa kamu mulai hari ini: tanpa modal lebih dulu, lalu
+              yang keterampilannya sudah kamu punya, baru bayarannya.
+            </p>
+          </div>
+
+          <BaseButton
+            v-if="category || noCapitalOnly || remoteOnly"
+            variant="ghost"
+            size="sm"
+            @click="resetFilters"
+          >
+            Tampilkan semua lagi
+          </BaseButton>
+        </div>
+
+        <div
+          v-if="readyNowCount > 0"
+          class="mt-5 flex items-center gap-3 rounded-2xl border border-sage-200 bg-sage-50 px-4 py-3"
+        >
+          <MascotFigure pose="sip" size="xs" class="hidden shrink-0 sm:block" />
+          <p class="text-sm leading-relaxed text-sage-800">
+            <strong class="font-semibold">{{ readyNowCount }} di antaranya</strong>
+            bisa kamu mulai hari ini juga — tanpa modal, dan sebagian besar keterampilannya sudah
+            kamu punya.
+          </p>
+        </div>
+
+        <div v-if="matches.length" class="mt-5 grid gap-4 lg:grid-cols-2">
+          <GigCard
+            v-for="match in matches"
+            :key="match.gig.id"
+            :match="match"
+            :hours-available="hoursAvailable"
+          />
+        </div>
+
+        <BaseCard v-else tone="soft" class="mt-5">
+          <div class="flex items-center gap-4">
+            <MascotFigure pose="tidur" size="sm" class="hidden sm:block" />
+            <p class="text-sm leading-relaxed text-ink-600">
+              Tidak ada gig yang cocok dengan batasan yang kamu pilih. Coba longgarkan salah
+              satunya — mengizinkan pekerjaan di luar rumah biasanya membuka paling banyak pilihan.
+            </p>
+          </div>
+        </BaseCard>
+      </section>
+
+      <p class="mt-8 max-w-3xl text-xs leading-relaxed text-ink-400">
+        Rentang bayaran di halaman ini adalah tarif pasar untuk pemula dan bisa berbeda di kotamu.
+        Pakai sebagai ancar-ancar saat menentukan harga, bukan sebagai janji. Micro-gig menutup
+        lubang jangka pendek — yang membuatmu benar-benar berdiri tetap pekerjaan dengan
+        penghasilan tetap di langkah 4.
+      </p>
+    </template>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <BaseButton to="/jobs" variant="ghost">← Kembali ke lowongan & CV</BaseButton>
+      <BaseButton to="/audit" variant="quiet">Perbarui angka di langkah 1</BaseButton>
+    </div>
+  </div>
+</template>

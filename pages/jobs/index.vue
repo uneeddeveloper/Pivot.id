@@ -347,6 +347,36 @@ if (roleId.value) await search()
       <AtsCvBuilder :role-id="roleId" />
     </section>
 
+    <!-- ── Jembatan ke langkah 5 ────────────────────────────────────────── -->
+    <div
+      class="surface-card mt-12 flex flex-col items-start gap-4 rounded-2xl border border-cream-300 p-6 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-4">
+        <MascotFigure pose="lari" size="sm" class="hidden sm:block" />
+        <div class="min-w-0">
+          <p class="font-semibold text-ink-900">Sambil menunggu lamaran dijawab</p>
+          <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-500">
+            Balasan lamaran biasanya butuh dua sampai enam minggu. Kalau ada cicilan yang jatuh
+            tempo sebelum itu, langkah 5 menyusun pekerjaan lepas yang bisa menutupinya minggu ini.
+          </p>
+        </div>
+      </div>
+      <BaseButton to="/gigs" class="shrink-0">
+        Lihat penghasilan cepat
+        <svg
+          class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 10h12m-5-5 5 5-5 5" />
+        </svg>
+      </BaseButton>
+    </div>
+
     <div class="mt-10">
       <BaseButton to="/roadmap" variant="ghost">← Kembali ke roadmap belajar</BaseButton>
     </div>

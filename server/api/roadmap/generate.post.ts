@@ -96,7 +96,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const [skills, roles] = await Promise.all([loadSkills(), loadRoles()])
+  // Kegagalan MySQL harus keluar sebagai 503 yang menyebut penyebabnya, bukan
+  // 500 mentah. Lihat `catalogUnavailableError`.
+  const [skills, roles] = await Promise.all([loadSkills(), loadRoles()]).catch(
+    (error: unknown) => {
+      throw catalogUnavailableError(error)
+    },
+  )
+
   const byId = new Map(skills.map((skill) => [skill.id, skill]))
 
   const targetSkills = body.skillIds

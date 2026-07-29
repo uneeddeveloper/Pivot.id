@@ -15,9 +15,9 @@
  * | `laptop` | Belajar & mengerjakan — langkah 3 (roadmap)                |
  * | `cape`   | Siap maju melamar — langkah 4 (lowongan & CV)              |
  * | `sip`    | Konfirmasi positif — "ini sudah bisa kamu ambil sekarang"  |
- * | `happy`  | Perayaan hasil — hitung mundur bebas utang                 |
+ * | `happy`  | Perayaan hasil — bebas utang, rencana gig menutup target   |
  * | `hati`   | Dukungan saat kondisinya berat — bukan perayaan            |
- * | `lari`   | Ajakan mulai bergerak — CTA penutup                        |
+ * | `lari`   | Bergerak sekarang — CTA penutup & langkah 5 (penghasilan)  |
  * | `tidur`  | Keadaan kosong: belum ada data yang bisa ditampilkan       |
  *
  * `introduce.png` sengaja tidak didaftarkan: papannya memuat teks nama lain

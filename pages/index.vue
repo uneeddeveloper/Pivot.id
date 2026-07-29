@@ -46,14 +46,21 @@ const stages = [
     title: 'Roadmap Belajar Kilat',
     body: 'Kurikulum mandiri 14–30 hari dari sumber gratis, disusun hanya dari keterampilan yang benar-benar kamu butuhkan.',
     to: '/roadmap',
-    ready: false,
+    ready: true,
   },
   {
     step: '04',
     title: 'CV ATS & Papan Lowongan',
-    body: 'CV siap lolos screening otomatis, plus daftar lowongan dan micro-gig yang sudah difilter dengan ambang Target Income-mu.',
+    body: 'CV siap lolos screening otomatis, plus lowongan asli yang sudah difilter dengan ambang Target Income-mu — lengkap dengan tanda untuk yang patut dicurigai.',
     to: '/jobs',
-    ready: false,
+    ready: true,
+  },
+  {
+    step: '05',
+    title: 'Penghasilan Cepat',
+    body: 'Lamaran baru dijawab dua sampai enam minggu; cicilan tidak menunggu selama itu. Micro-gig yang bisa menghasilkan minggu ini, disusun jadi rencana yang menutup kebutuhan terdekatmu.',
+    to: '/gigs',
+    ready: true,
   },
 ]
 
@@ -218,7 +225,7 @@ const preview = {
 
     <!-- ── Alur empat langkah ───────────────────────────────────────────── -->
     <section id="alur" class="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
-      <h2 class="text-2xl font-bold tracking-tight text-ink-900">Empat langkah, satu per satu</h2>
+      <h2 class="text-2xl font-bold tracking-tight text-ink-900">Lima langkah, satu per satu</h2>
       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-ink-500">
         Tidak perlu selesai semuanya hari ini. Selesaikan satu langkah, lalu istirahat.
       </p>

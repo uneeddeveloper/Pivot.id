@@ -4,6 +4,7 @@ const steps = [
   { to: '/skill-gap', label: 'Skill & Peran', short: 'Skill', step: 2 },
   { to: '/roadmap', label: 'Roadmap Belajar', short: 'Roadmap', step: 3 },
   { to: '/jobs', label: 'Lowongan & CV', short: 'Lowongan', step: 4 },
+  { to: '/gigs', label: 'Penghasilan Cepat', short: 'Cepat', step: 5 },
 ]
 
 const helplines = [
@@ -33,7 +34,11 @@ const helplines = [
           <span class="text-base font-semibold tracking-tight text-brand-800">Pivot</span>
         </NuxtLink>
 
-        <nav class="hidden items-center gap-0.5 md:flex">
+        <!--
+          Ambang pindah ke `lg`, bukan `md`: dengan lima langkah, label
+          selengkapnya sudah tidak muat berdampingan di 768px.
+        -->
+        <nav class="hidden items-center gap-0.5 lg:flex">
           <NuxtLink
             v-for="item in steps"
             :key="item.to"
@@ -50,12 +55,12 @@ const helplines = [
           </NuxtLink>
         </nav>
 
-        <BaseButton to="/audit" size="sm" class="md:hidden">Mulai</BaseButton>
+        <BaseButton to="/audit" size="sm" class="lg:hidden">Mulai</BaseButton>
       </div>
 
-      <!-- Navigasi langkah versi mobile: bisa digeser, tetap terlihat urutannya. -->
+      <!-- Navigasi langkah versi sempit: bisa digeser, tetap terlihat urutannya. -->
       <nav
-        class="no-scrollbar flex gap-1.5 overflow-x-auto border-t border-ink-200/60 px-4 py-2 md:hidden"
+        class="no-scrollbar flex gap-1.5 overflow-x-auto border-t border-ink-200/60 px-4 py-2 lg:hidden"
       >
         <NuxtLink
           v-for="item in steps"

@@ -2,16 +2,20 @@
 import { computed } from 'vue'
 
 /**
- * Penanda posisi di alur 4 langkah. Tujuannya menenangkan: user bisa melihat
+ * Penanda posisi di alur 5 langkah. Tujuannya menenangkan: user bisa melihat
  * bahwa yang tersisa sedikit, dan langkah sebelumnya sudah benar-benar selesai.
+ *
+ * Label di sini sengaja lebih pendek daripada di navigasi header: lima kolom
+ * harus muat berdampingan di layar 640px tanpa saling menabrak.
  */
 const props = defineProps<{ current: number }>()
 
 const steps = [
   { label: 'Audit', to: '/audit' },
-  { label: 'Skill & Peran', to: '/skill-gap' },
+  { label: 'Skill', to: '/skill-gap' },
   { label: 'Roadmap', to: '/roadmap' },
-  { label: 'Lowongan & CV', to: '/jobs' },
+  { label: 'Lowongan', to: '/jobs' },
+  { label: 'Penghasilan', to: '/gigs' },
 ]
 
 const percent = computed(() => ((props.current - 1) / (steps.length - 1)) * 100)

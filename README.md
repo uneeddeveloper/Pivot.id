@@ -6,7 +6,8 @@ kembali bekerja tanpa turun di bawah kebutuhan hidup, dan **korban pinjaman onli
 online** yang butuh strategi pelunasan realistis.
 
 Alur utamanya sama untuk ketiganya: hitung Target Income → cari peran kerja yang menutupinya →
-kejar keterampilan yang kurang → lamar dengan CV yang lolos screening.
+kejar keterampilan yang kurang → lamar dengan CV yang lolos screening → tutup kebutuhan minggu ini
+dengan kerja lepas selama lamaran belum dijawab.
 
 > Bagian utang bersifat opsional. User tanpa utang tetap mendapat Target Income yang sah, yaitu
 > biaya hidupnya sendiri — `isReady` hanya mensyaratkan `livingCost > 0`.
@@ -48,9 +49,10 @@ cadangan dan mengatakan alasannya, bukan gagal diam-diam.
 
 Sejak sprint ini, katalog dan lowongan tidak lagi ditulis tangan di kode.
 
-- **MySQL** — sumber kebenaran untuk `skills`, `roles`, lowongan hasil pencarian, dan cache LLM.
-  Skemanya di [server/db/schema.sql](server/db/schema.sql), benih awalnya di
-  [server/db/catalog-seed.ts](server/db/catalog-seed.ts).
+- **MySQL** — sumber kebenaran untuk `skills`, `roles`, `gigs`, lowongan hasil pencarian, dan cache
+  LLM. Skemanya di [server/db/schema.sql](server/db/schema.sql), benih awalnya di
+  [server/db/catalog-seed.ts](server/db/catalog-seed.ts) (skill & peran) dan
+  [server/db/gig-seed.ts](server/db/gig-seed.ts) (micro-gig).
 - **Google Jobs lewat SerpApi** — lowongan asli dari papan yang benar-benar ada (JobStreet, Glints,
   Kalibrr, LinkedIn). Dipakai lewat perantara resmi, bukan scraping halaman Google sendiri: itu
   melanggar ToS, mudah diblokir, dan strukturnya berubah tanpa pemberitahuan.
@@ -77,6 +79,8 @@ MySQL, dan tidak boleh ditambahkan.
 
 - [composables/useDebtCalculator.ts](composables/useDebtCalculator.ts) — JavaScript murni, tanpa
   satu pun panggilan jaringan.
+- [composables/useGigPlanner.ts](composables/useGigPlanner.ts) — sama. Masukannya memuat cicilan
+  yang jatuh tempo minggu ini, jadi ia terikat aturan yang sama.
 - [stores/financial.ts](stores/financial.ts) — Pinia store yang **sengaja tidak di-persist**. Tidak
   boleh ditambahi plugin persist, `$fetch`, atau sinkronisasi database.
 - [stores/career.ts](stores/career.ts) — sama: tidak di-persist, hilang saat tab ditutup.
@@ -102,6 +106,13 @@ syarat yang mengikat keduanya:
 
 Target Income boleh dikirim ke `/api/jobs/search` sebagai **satu angka teragregasi** untuk menyaring
 gaji — rincian utang yang membentuknya tidak ikut.
+
+**Langkah 5 tidak mengirim apa pun.** `/gigs` adalah halaman paling ketat di aplikasi ini:
+permintaan jaringannya hanya `GET /api/gigs` dan `GET /api/catalog`, keduanya sekadar membaca
+katalog publik. Kebutuhan rupiah dan jam kerja yang tersedia — yang berasal langsung dari jatuh
+tempo cicilan — dihitung sepenuhnya di browser. **Jangan menambahkan endpoint yang menerima `need`
+atau `hoursAvailable`**; tidak ada satu pun alasan produk yang membenarkannya, karena seluruh
+katalognya sudah ada di klien.
 
 ### Pesan error tidak boleh membocorkan token
 
@@ -292,6 +303,108 @@ Halaman [/roadmap](pages/roadmap/index.vue) menyusun kurikulum dari `topSkillGap
 - Pelacak kemajuannya di memori komponen saja. Konsekuensi jujurnya (centang hilang saat tab
   ditutup) **disebutkan ke user**, bukan disembunyikan.
 
+## Penghasilan cepat / micro-gig (langkah 5)
+
+Halaman [/gigs](pages/gigs/index.vue) menjawab pertanyaan yang tidak dijawab langkah 4:
+
+> Lamaran kerja baru dibalas dua sampai enam minggu. Cicilan tidak menunggu selama itu.
+
+Langkah 4 mencari penghasilan **bulanan** yang menutup Target Income. Langkah 5 mencari uang yang
+bisa masuk **minggu ini** dengan keterampilan yang sudah dimiliki sekarang — bukan yang harus
+dipelajari dulu.
+
+Katalognya di MySQL (`gigs`, `gig_skills`, `gig_channels`), benihnya
+[server/db/gig-seed.ts](server/db/gig-seed.ts): 18 jenis kerja lepas dari entri data sampai titip
+jual makanan, memakai **kosakata keterampilan yang sama** dengan katalog peran — jadi hasil langkah
+2 langsung terpakai di sini tanpa pemetaan tambahan.
+
+### Rencana, bukan sekadar daftar
+
+Masukan user cuma dua angka: **berapa yang harus terkumpul** dan **berapa jam yang benar-benar
+tersedia**. Angka pertama bisa diambil dari hasil langkah 1 lewat tombol pintasan (cicilan 7 hari ke
+depan, biaya hidup seminggu, Target Income sebulan) supaya tidak perlu diketik ulang.
+
+[useGigPlanner.ts](composables/useGigPlanner.ts) membagi jam yang ada ke gig-gig teratas sampai
+kebutuhannya tertutup, lalu menyajikannya sebagai langkah bernomor: *"6× edit video (18 jam) + 4×
+desain feed (12 jam) → Rp 900.000"*.
+
+```
+perHour = earnMin / hoursPerUnit
+units   = min( ceil(sisa kebutuhan / earnMin),      ← selalu tarif TERENDAH
+               floor(sisa jam / hoursPerUnit),
+               maxUnitsPerWeek )                     ← batas permintaan, bukan waktu
+covered = Σ(units × earnMin) >= kebutuhan
+```
+
+- **Rencana selalu disusun dari tarif terendah, tidak pernah rata-rata.** Rencana yang meleset ke
+  atas cuma membuat user senang; rencana yang meleset ke bawah membuat cicilannya telat — dan yang
+  menanggungnya orang yang paling tidak mampu menanggung. Batas atasnya tetap ditampilkan, tapi
+  sebagai kemungkinan ("bisa sampai …"), bukan sebagai janji.
+- **`maxUnitsPerWeek` ada karena yang membatasi micro-gig adalah permintaan, bukan waktu luang.**
+  Tanpa kolom itu, rencana yang disusun dari jam saja menghasilkan saran seperti *"80× dropship
+  minggu ini"*: benar secara aritmetika, mustahil di dunia nyata, dan membuat seluruh halaman
+  kehilangan kredibilitas.
+- **Maksimal tiga gig per rencana**, dan langkah susulan yang sumbangannya di bawah 10% kebutuhan
+  dibuang. Orang yang sedang tertekan tidak akan menjalankan daftar tujuh langkah, dan menambahkan
+  "1× dropship, Rp 20.000" ke kebutuhan Rp 900.000 hanya jadi kebisingan.
+- **Belum tertutup ≠ vonis.** Sama seperti `feasible: false` di simulasi utang, hasilnya membawa
+  `shortfall` **dan** `extraHoursNeeded` — target berikutnya yang bisa dikejar.
+- **Ada titik di mana "tambah jam lagi" berhenti jadi saran.** Kalau kebutuhannya melewati kapasitas
+  mingguan kandidat teratas, atau jam yang diperlukan lewat 56 jam/minggu, `beyondReach` menyala dan
+  UI berganti pesan: pecah target ke beberapa minggu, minta perpanjangan sebelum jatuh tempo,
+  laporkan pinjaman ilegal ke OJK 157. Menyuruh orang menambah jam yang tidak ia punya bukan
+  membantu — itu menyalahkan dia atas keadaan yang tidak bisa ia ubah.
+
+### Dua urutan berbeda, dan kenapa
+
+Daftar dan rencana **tidak** memakai urutan yang sama, karena pertanyaannya berbeda:
+
+| | Daftar (`compareMatches`) | Rencana (`comparePlanCandidates`) |
+| --- | --- | --- |
+| Menjawab | "apa yang bisa kukerjakan" | "bagaimana menutup Rp sekian dengan jam yang ada" |
+| Urutan | modal nol → **kecocokan skill** → bayaran/jam → kecepatan bayar | modal nol → **bayaran/jam** → kecocokan skill → kecepatan bayar |
+
+Menyusun rencana dengan urutan daftar menghasilkan saran yang buruk, dan ini terbukti saat diuji:
+gig dengan kecocokan 100% tapi Rp 12.500/jam menghabiskan seluruh jam user dan hanya menutup
+Rp 245.000 dari kebutuhan Rp 900.000 — padahal ada gig Rp 50.000/jam yang keterampilannya juga
+sudah ia punya sebagian, yang menutup Rp 675.000 dengan jam yang sama.
+
+Rencananya tetap dibatasi ke gig yang **setidaknya satu keterampilannya sudah dimiliki** — selama
+ada. Tanpa itu, orang yang cuma bisa Excel akan disuruh membuat landing page karena tarifnya lebih
+tinggi. Kalau langkah 2 memang belum diisi, seluruh katalog dipakai.
+
+Modal nol menang di atas segalanya di kedua urutan, karena user yang sedang terjerat utang bisa
+**berutang lagi** hanya untuk menutup modal awal. Gig bermodal tidak disembunyikan — hanya tidak
+boleh berada di puncak, dan nominal modalnya selalu ditulis apa adanya di kartu.
+
+### Anti-penipuan
+
+Audiens aplikasi ini adalah sasaran empuk penipuan kerja lepas, jadi ini bukan fitur tambahan:
+
+- **Kolom `caution` di tabel `gigs` bertipe `NOT NULL`** — tidak ada gig yang bisa tayang tanpa
+  peringatan spesifiknya sendiri. Isinya risiko nyata gig itu (mis. "supplier yang meminta biaya
+  pendaftaran reseller hampir selalu penipuan"), bukan kalimat umum.
+- Peringatan tiap kartu diletakkan **di atas** "Cara mulai & tempat mencarinya" — sama seperti
+  JobCard menaruh tanda bahaya di atas angka gaji.
+- Satu blok merah brand di halaman menyatakan aturan yang tidak ada pengecualiannya: **pekerjaan
+  yang sah tidak pernah meminta uang dari orang yang mau bekerja.**
+- Warna dibedakan secara sadar: `attention-note` (krem) untuk "hati-hati soal ini" per gig, merah
+  brand hanya untuk blok anti-penipuan yang memang setingkat lebih keras.
+
+### Kanal pencarian kerja
+
+`gig_channels` menyimpan **kata kunci pencarian, bukan URL** — alasannya sama persis dengan sumber
+belajar di roadmap: tautan platform berpindah dan halaman kategorinya berubah, kata kunci tidak.
+UI-nya yang mengubah kata kunci itu jadi tautan pencarian.
+
+Kanalnya diambil lewat `JSON_ARRAYAGG` + `JSON_OBJECT`, bukan `GROUP_CONCAT` dengan pemisah
+karakter: nama kanal dan kata kuncinya ditulis manusia dan boleh memuat tanda baca apa pun,
+termasuk karakter yang dipakai sebagai pemisah.
+
+> `/api/gigs` sengaja dipisah dari `/api/catalog`. Katalog gig jauh lebih berat (deskripsi, cara
+> memulai, peringatan, kanal) dan hanya dipakai satu halaman; menggabungkannya membuat setiap
+> halaman lain ikut menarik muatan yang tidak dipakainya — mahal untuk user berkuota terbatas.
+
 ## Jatuh tempo
 
 Setiap utang punya field `dueDate` (`YYYY-MM-DD`, boleh kosong) berisi **tanggal pembayaran
@@ -344,11 +457,11 @@ karakter yang menemani user dari langkah 1 sampai 4, bukan tempelan gambar lucu.
 | `tanya` | Langkah 2 — skill gap, pose bertanya |
 | `laptop` | Langkah 3 — roadmap belajar |
 | `cape` | Langkah 4 — lowongan & CV, siap maju |
-| `lari` | Ajakan penutup di landing |
-| `sip` | "N peran bisa kamu lamar sekarang juga" |
-| `happy` | Hitung mundur bebas utang |
-| `hati` | Simulasi belum feasible, dan footer |
-| `tidur` | Keadaan kosong: pencarian lowongan & roadmap belum ada isinya |
+| `lari` | Bergerak sekarang: ajakan penutup di landing, jembatan /jobs → /gigs, hero langkah 5 |
+| `sip` | "N peran bisa kamu lamar sekarang juga", "N gig bisa dimulai hari ini" |
+| `happy` | Hitung mundur bebas utang, rencana gig yang menutup kebutuhan |
+| `hati` | Simulasi belum feasible, rencana gig belum menutup kebutuhan, dan footer |
+| `tidur` | Keadaan kosong: pencarian lowongan, roadmap, & kebutuhan gig belum diisi |
 
 Aturan yang menempel pada komponennya:
 
@@ -414,26 +527,32 @@ components/ui/               BaseButton, BaseCard, CurrencyInput, FormField, Pri
                              DueBadge, ComingSoon, StepProgress, LogoMark, MascotFigure
 components/career/           SkillChat, SkillPicker, RoleMatchCard, RoadmapPlan
 components/jobs/             JobCard, RecommendedJobs, AtsCvBuilder
+components/gigs/             GigNeedForm, GigPlanSummary, GigCard
 composables/                 useDebtCalculator.ts (jantung tahap 1)
                              useRoleMatcher.ts    (pencocokan murni, tahap 2)
+                             useGigPlanner.ts     (pencocokan + rencana murni, tahap 5)
 shared/skills.ts             pencocokan skill berbasis kata kunci — dipakai klien DAN server
-server/db/                   schema.sql, config.ts, catalog-seed.ts, migrate.ts, seed.ts
+server/db/                   schema.sql, config.ts, migrate.ts, seed.ts,
+                             catalog-seed.ts (skill & peran), gig-seed.ts (micro-gig)
 server/utils/                db.ts        koneksi & helper MySQL
                              catalog.ts   baca katalog dari MySQL (cache 60 detik)
+                                          + catalogUnavailableError() untuk route lain
                              llm.ts       klien Sumopod + chatJson tervalidasi Zod
                              serpapi.ts   Google Jobs
                              jobNormalizer.ts  normalisasi + validasi lowongan
                              jobRepository.ts  simpan & baca lowongan, rem kuota
-server/api/                  catalog, health, jobs/search, career/interview,
+server/api/                  catalog, gigs, health, jobs/search, career/interview,
                              cv/ats, roadmap/generate
 stores/financial.ts          Pinia, in-memory only
 stores/career.ts             Pinia, in-memory only (skill + teks CV + consent)
 stores/catalog.ts            Pinia, katalog publik dari /api/catalog
+stores/gigs.ts               Pinia, katalog micro-gig dari /api/gigs
 types/financial.ts           Debt, DueInfo, SimulationInput, SimulationResult, MonthSnapshot
 types/career.ts              Skill, Role, RoleMatch
 types/mascot.ts              MascotPose, MascotSize (+ tabel makna tiap pose), Roadmap
 types/jobs.ts                JobListing, JobMatch, JobSearchResponse
-pages/                       index, audit, skill-gap, roadmap, jobs
+types/gigs.ts                MicroGig, GigChannel, GigMatch, GigPlanStep, GigPlan
+pages/                       index, audit, skill-gap, roadmap, jobs, gigs
 ```
 
 Kunci Sumopod dan SerpApi hanya dibaca di `server/**` lewat `runtimeConfig` — keduanya tidak pernah
@@ -452,13 +571,18 @@ Komponen dipakai tanpa prefix folder (`<DebtInputForm />`) lewat `components.pat
 | 3 | Job board (Google Jobs), filter minimum salary | ✅ selesai |
 | 4 | Skill gap analyzer + roadmap generator | ✅ selesai |
 | 5 | CV ATS generator, polish UI, PWA | 🟡 CV ATS selesai; PWA belum |
-| 6 | Uji privasi + skenario demo juri | ⬜ |
+| 6 | Micro-gig / penghasilan cepat (langkah 5) | ✅ selesai |
+| 7 | Uji privasi + skenario demo juri | ⬜ |
 
-Keempat halaman alur sudah berfungsi penuh dengan data nyata. Yang tersisa: micro-gigs, PWA, dan
-skrip demo juri.
+Kelima halaman alur sudah berfungsi penuh dengan data nyata. Yang tersisa: PWA dan skrip demo juri.
 
 Belum dikerjakan dan patut diketahui sebelum demo:
 
+- **Variabel `MYSQL_*` wajib diisi di lingkungan hosting.** Kalau kosong, `nuxt.config.ts` jatuh ke
+  `127.0.0.1:3306` — yang di serverless berarti "kontainer ini", tempat tidak ada MySQL. Gejalanya:
+  seluruh halaman yang butuh katalog kosong. Periksa lewat **`GET /api/health`**: kalau
+  `database.ok` false dan `host` menunjukkan `127.0.0.1`, itu penyebabnya. MySQL lokal tidak bisa
+  dihubungi dari hosting — perlu MySQL yang bisa diakses publik.
 - **Belum ada rate limit** di route `server/api/**`. Di lingkungan publik, satu orang bisa
   menghabiskan kuota SerpApi dan Sumopod. Cukup untuk demo lokal, tidak cukup untuk produksi.
 - **Belum ada pembersih cache kedaluwarsa.** Baris `llm_cache` dan `job_searches` yang lewat

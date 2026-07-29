@@ -11,11 +11,11 @@ export default defineEventHandler(async () => {
   const config = useRuntimeConfig()
   const db = await pingDatabase()
 
-  let catalogCount = { skills: 0, roles: 0 }
+  let catalogCount = { skills: 0, roles: 0, gigs: 0 }
   if (db.ok) {
     try {
-      const [skills, roles] = await Promise.all([loadSkills(), loadRoles()])
-      catalogCount = { skills: skills.length, roles: roles.length }
+      const [skills, roles, gigs] = await Promise.all([loadSkills(), loadRoles(), loadGigs()])
+      catalogCount = { skills: skills.length, roles: roles.length, gigs: gigs.length }
     } catch {
       // Tabel belum dibuat — sudah tercermin di `seeded: false` di bawah.
     }
@@ -27,7 +27,8 @@ export default defineEventHandler(async () => {
       error: db.error,
       host: `${config.mysql.host}:${config.mysql.port}`,
       name: config.mysql.database,
-      seeded: catalogCount.skills > 0 && catalogCount.roles > 0,
+      seeded:
+        catalogCount.skills > 0 && catalogCount.roles > 0 && catalogCount.gigs > 0,
       ...catalogCount,
     },
     llm: {

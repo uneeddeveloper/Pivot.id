@@ -2,8 +2,8 @@
 -- Pivot — skema MySQL 8
 --
 -- APA YANG ADA DI SINI
---   Katalog keterampilan & peran kerja, lowongan hasil pencarian Google Jobs,
---   dan cache jawaban LLM.
+--   Katalog keterampilan, peran kerja, dan micro-gig; lowongan hasil pencarian
+--   Google Jobs; dan cache jawaban LLM.
 --
 -- APA YANG SENGAJA TIDAK ADA DI SINI
 --   Tidak ada tabel utang, cicilan, biaya hidup, atau teks CV. Data itu tetap
@@ -72,6 +72,75 @@ CREATE TABLE IF NOT EXISTS role_skills (
   KEY idx_role_skills_skill (skill_id),
   CONSTRAINT fk_rs_role  FOREIGN KEY (role_id)  REFERENCES roles (id)  ON DELETE CASCADE,
   CONSTRAINT fk_rs_skill FOREIGN KEY (skill_id) REFERENCES skills (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ── Katalog micro-gig (langkah 5) ───────────────────────────────────────────
+
+-- Pekerjaan lepas berskala kecil yang bisa menghasilkan dalam hitungan hari.
+-- Berbeda dari `roles` yang bicara gaji bulanan, di sini satuannya per pesanan
+-- atau per hari — karena pertanyaan yang dijawab juga berbeda: bukan "berapa
+-- gaji peran ini", tapi "berapa yang bisa kuhasilkan minggu ini".
+CREATE TABLE IF NOT EXISTS gigs (
+  id                VARCHAR(64)  NOT NULL,
+  title             VARCHAR(160) NOT NULL,
+  category          VARCHAR(64)  NOT NULL,
+  -- Rupiah per satu satuan pekerjaan. Rentang pasar untuk pemula; batas
+  -- bawahnya yang dipakai penyusun rencana supaya tidak menjanjikan lebih.
+  earn_min          BIGINT       NOT NULL DEFAULT 0,
+  earn_max          BIGINT       NOT NULL DEFAULT 0,
+  -- Satuan bayaran, mis. 'per pesanan', 'per hari', 'per artikel'.
+  unit              VARCHAR(48)  NOT NULL DEFAULT 'per pesanan',
+  hours_per_unit    DECIMAL(5,2) NOT NULL DEFAULT 1,
+  -- Berapa satuan yang realistis DIDAPAT pemula dalam seminggu — bukan berapa
+  -- yang muat di jam kerjanya. Yang membatasi micro-gig biasanya permintaan,
+  -- bukan waktu; tanpa kolom ini penyusun rencana menyarankan hal seperti
+  -- "80x dropship minggu ini".
+  max_units_per_week INT         NOT NULL DEFAULT 5,
+  -- Berapa hari sampai uangnya benar-benar diterima.
+  days_to_first_pay INT          NOT NULL DEFAULT 7,
+  -- Modal awal yang tidak bisa dihindari. 0 = bisa mulai tanpa uang sama sekali.
+  startup_cost      BIGINT       NOT NULL DEFAULT 0,
+  remote_friendly   TINYINT(1)   NOT NULL DEFAULT 0,
+  description       TEXT         NOT NULL,
+  how_to_start      TEXT         NOT NULL,
+  -- Risiko yang harus diwaspadai. Sengaja NOT NULL: audiens aplikasi ini
+  -- justru sasaran empuk penipuan kerja lepas, jadi tidak boleh ada gig yang
+  -- tayang tanpa peringatannya.
+  caution           TEXT         NOT NULL,
+  sort_order        INT          NOT NULL DEFAULT 0,
+  created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_gigs_category (category, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Keterampilan yang biasanya diminta. Memakai katalog `skills` yang sama
+-- dengan peran kerja, supaya hasil langkah 2 bisa langsung dipakai di sini.
+CREATE TABLE IF NOT EXISTS gig_skills (
+  gig_id     VARCHAR(64) NOT NULL,
+  skill_id   VARCHAR(64) NOT NULL,
+  sort_order INT         NOT NULL DEFAULT 0,
+  PRIMARY KEY (gig_id, skill_id),
+  KEY idx_gig_skills_skill (skill_id),
+  CONSTRAINT fk_gs_gig   FOREIGN KEY (gig_id)   REFERENCES gigs (id)   ON DELETE CASCADE,
+  CONSTRAINT fk_gs_skill FOREIGN KEY (skill_id) REFERENCES skills (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tempat mencari pekerjaannya. Yang disimpan kata kunci pencarian, BUKAN URL —
+-- alasannya sama dengan sumber belajar di roadmap: tautan platform berpindah,
+-- kata kunci tidak.
+CREATE TABLE IF NOT EXISTS gig_channels (
+  id           INT          NOT NULL AUTO_INCREMENT,
+  gig_id       VARCHAR(64)  NOT NULL,
+  name         VARCHAR(120) NOT NULL,
+  search_query VARCHAR(200) NOT NULL,
+  -- 'platform' | 'komunitas' | 'langsung'
+  kind         VARCHAR(24)  NOT NULL DEFAULT 'platform',
+  sort_order   INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_gig_channel (gig_id, name),
+  CONSTRAINT fk_gc_gig FOREIGN KEY (gig_id) REFERENCES gigs (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
