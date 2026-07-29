@@ -91,9 +91,12 @@ const helplines = [
                 Rintis<span class="text-brand-500">Ulang</span>
               </span>
             </div>
-            <p class="mt-3 text-sm leading-relaxed text-ink-600">
-              Ruang untuk memulai, dan memulai lagi.
-            </p>
+            <div class="mt-3 flex items-center gap-3">
+              <MascotFigure pose="hati" size="xs" />
+              <p class="text-sm leading-relaxed text-ink-600">
+                Ruang untuk memulai, dan memulai lagi.
+              </p>
+            </div>
             <p class="mt-3 text-xs leading-relaxed text-ink-400">
               RintisUlang bukan lembaga keuangan dan tidak memberikan pinjaman.
             </p>

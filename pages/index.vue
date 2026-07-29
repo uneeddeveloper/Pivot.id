@@ -39,7 +39,7 @@ const stages = [
     title: 'Skill Gap & Peran Kerja',
     body: 'Cocokkan Target Income dengan posisi kerja yang gajinya benar-benar menutupi kebutuhanmu, lalu lihat keterampilan apa yang masih perlu dikejar.',
     to: '/skill-gap',
-    ready: false,
+    ready: true,
   },
   {
     step: '03',
@@ -129,45 +129,64 @@ const preview = {
         </div>
 
         <!-- Pratinjau hasil: menunjukkan wujud akhirnya sebelum user mengisi apa pun. -->
-        <div class="animate-rise [animation-delay:150ms] lg:pl-4" aria-hidden="true">
-          <div class="relative mx-auto max-w-sm">
-            <div
-              class="absolute -top-4 -right-3 rotate-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 shadow-soft"
-            >
-              <p class="text-[10px] font-medium text-sage-700">Bebas utang</p>
-              <p class="text-sm font-semibold text-sage-800">14 bulan lagi</p>
+        <div class="animate-rise [animation-delay:150ms] lg:pl-4">
+          <div class="mx-auto max-w-sm">
+            <!-- Sapaan maskot. Teksnya nyata, jadi blok ini TIDAK aria-hidden. -->
+            <div class="mb-4 flex items-end gap-2">
+              <MascotFigure
+                pose="hai"
+                size="sm"
+                eager
+                alt="Maskot RintisUlang melambaikan sayap"
+              />
+              <p
+                class="mb-3 rounded-2xl rounded-bl-md border border-cream-300 bg-white/85 px-3.5 py-2.5 text-xs leading-relaxed text-ink-600 shadow-soft backdrop-blur-sm"
+              >
+                Kita hitung angkanya bareng-bareng. Satu langkah dulu, tidak usah buru-buru.
+              </p>
             </div>
 
-            <div class="surface-brand rounded-2xl border border-brand-700/60 p-6 text-cream-100">
-              <p class="text-xs font-medium tracking-wide text-cream-100/75 uppercase">
-                Target Income Bulanan
-              </p>
-              <p class="mt-2 text-4xl font-bold tracking-tight tabular-nums">
-                {{ formatIDR(preview.target) }}
-              </p>
-
-              <dl class="mt-5 space-y-2 border-t border-cream-100/20 pt-4 text-sm">
-                <div class="flex justify-between gap-4">
-                  <dt class="text-cream-100/70">Biaya hidup minimal</dt>
-                  <dd class="font-medium tabular-nums">{{ formatIDR(preview.livingCost) }}</dd>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <dt class="text-cream-100/70">Total cicilan minimal</dt>
-                  <dd class="font-medium tabular-nums">{{ formatIDR(preview.minPayment) }}</dd>
-                </div>
-              </dl>
-
-              <div class="mt-5 h-1.5 overflow-hidden rounded-full bg-cream-100/20">
-                <div class="h-full w-2/3 rounded-full bg-cream-200" />
+            <div class="relative" aria-hidden="true">
+              <div
+                class="absolute -top-4 -right-3 rotate-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 shadow-soft"
+              >
+                <p class="text-[10px] font-medium text-sage-700">Bebas utang</p>
+                <p class="text-sm font-semibold text-sage-800">14 bulan lagi</p>
               </div>
-              <p class="mt-2 text-xs text-cream-100/70">Contoh tampilan — angkamu akan berbeda.</p>
-            </div>
 
-            <div
-              class="absolute -bottom-5 -left-4 -rotate-2 rounded-xl border border-ink-200 bg-white px-3 py-2 shadow-soft"
-            >
-              <p class="text-[10px] text-ink-400">Cicilan 7 hari ke depan</p>
-              <p class="text-sm font-semibold tabular-nums text-brand-700">Rp 450.000</p>
+              <div class="surface-brand rounded-2xl border border-brand-700/60 p-6 text-cream-100">
+                <p class="text-xs font-medium tracking-wide text-cream-100/75 uppercase">
+                  Target Income Bulanan
+                </p>
+                <p class="mt-2 text-4xl font-bold tracking-tight tabular-nums">
+                  {{ formatIDR(preview.target) }}
+                </p>
+
+                <dl class="mt-5 space-y-2 border-t border-cream-100/20 pt-4 text-sm">
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-cream-100/70">Biaya hidup minimal</dt>
+                    <dd class="font-medium tabular-nums">{{ formatIDR(preview.livingCost) }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-cream-100/70">Total cicilan minimal</dt>
+                    <dd class="font-medium tabular-nums">{{ formatIDR(preview.minPayment) }}</dd>
+                  </div>
+                </dl>
+
+                <div class="mt-5 h-1.5 overflow-hidden rounded-full bg-cream-100/20">
+                  <div class="h-full w-2/3 rounded-full bg-cream-200" />
+                </div>
+                <p class="mt-2 text-xs text-cream-100/70">
+                  Contoh tampilan — angkamu akan berbeda.
+                </p>
+              </div>
+
+              <div
+                class="absolute -bottom-5 -left-4 -rotate-2 rounded-xl border border-ink-200 bg-white px-3 py-2 shadow-soft"
+              >
+                <p class="text-[10px] text-ink-400">Cicilan 7 hari ke depan</p>
+                <p class="text-sm font-semibold tabular-nums text-brand-700">Rp 450.000</p>
+              </div>
             </div>
           </div>
         </div>
@@ -274,11 +293,14 @@ const preview = {
       <div
         class="surface-card mt-10 flex flex-col items-start gap-4 rounded-2xl border border-cream-300 p-6 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div>
-          <p class="font-semibold text-ink-900">Mulai dari satu angka dulu.</p>
-          <p class="mt-1 text-sm leading-relaxed text-ink-500">
-            Isian pertamanya cuma biaya hidup bulanan. Sekitar dua menit.
-          </p>
+        <div class="flex items-center gap-4">
+          <MascotFigure pose="lari" size="sm" class="hidden sm:block" />
+          <div>
+            <p class="font-semibold text-ink-900">Mulai dari satu angka dulu.</p>
+            <p class="mt-1 text-sm leading-relaxed text-ink-500">
+              Isian pertamanya cuma biaya hidup bulanan. Sekitar dua menit.
+            </p>
+          </div>
         </div>
         <BaseButton to="/audit" size="lg" class="shrink-0">
           Mulai audit

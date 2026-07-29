@@ -312,6 +312,33 @@ export function formatNumber(value: number): string {
   return idrCompactParts.format(Math.round(Number.isFinite(value) ? value : 0))
 }
 
+/**
+ * Nominal ringkas untuk label sumbu grafik: 12.500.000 -> "12,5 jt".
+ * Dipakai hanya di tempat sempit; angka penuh tetap tersedia di tooltip dan tabel.
+ */
+export function formatCompactIDR(value: number): string {
+  const n = Math.round(Number.isFinite(value) ? value : 0)
+  if (n === 0) return '0'
+
+  const units: { limit: number; suffix: string }[] = [
+    { limit: 1_000_000_000_000, suffix: 't' },
+    { limit: 1_000_000_000, suffix: 'm' },
+    { limit: 1_000_000, suffix: 'jt' },
+    { limit: 1_000, suffix: 'rb' },
+  ]
+
+  for (const { limit, suffix } of units) {
+    if (n >= limit) {
+      const scaled = n / limit
+      // Satu desimal hanya bila menambah informasi (12,5 jt), bukan "12,0 jt".
+      const text = scaled >= 100 || Number.isInteger(scaled) ? String(Math.round(scaled)) : scaled.toFixed(1)
+      return `${text.replace('.', ',')} ${suffix}`
+    }
+  }
+
+  return formatNumber(n)
+}
+
 /** "15 bulan" -> "1 tahun 3 bulan" agar terasa lebih manusiawi. */
 export function formatDuration(months: number): string {
   if (months <= 0) return '—'
@@ -427,6 +454,7 @@ export function useDebtCalculator() {
     paymentDueWithin,
     formatIDR,
     formatNumber,
+    formatCompactIDR,
     formatDuration,
     formatMonthYear,
     formatFullDate,

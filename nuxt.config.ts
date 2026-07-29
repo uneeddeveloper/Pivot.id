@@ -8,6 +8,39 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  /**
+   * Kunci di luar `public` HANYA terbaca di sisi server (server/**). Token
+   * Sumopod dan SerpApi tidak boleh sampai ke bundel browser — itu sebabnya
+   * seluruh pemanggilan LLM & pencarian lowongan lewat route di `server/api`.
+   */
+  runtimeConfig: {
+    mysql: {
+      host: process.env.MYSQL_HOST || '127.0.0.1',
+      port: Number(process.env.MYSQL_PORT || 3306),
+      user: process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQL_PASSWORD || '',
+      database: process.env.MYSQL_DATABASE || 'rintisulang',
+      connectionLimit: Number(process.env.MYSQL_CONNECTION_LIMIT || 10),
+    },
+    sumopod: {
+      apiKey: process.env.SUMOPOD_API_KEY || '',
+      baseUrl: process.env.SUMOPOD_BASE_URL || 'https://ai.sumopod.com/v1',
+      model: process.env.SUMOPOD_MODEL || 'gpt-4o-mini',
+      modelSmart: process.env.SUMOPOD_MODEL_SMART || '',
+      timeoutMs: Number(process.env.SUMOPOD_TIMEOUT_MS || 60_000),
+    },
+    serpapi: {
+      apiKey: process.env.SERPAPI_KEY || '',
+      location: process.env.JOB_SEARCH_LOCATION || 'Indonesia',
+      hl: process.env.JOB_SEARCH_HL || 'id',
+      gl: process.env.JOB_SEARCH_GL || 'id',
+    },
+    cache: {
+      jobTtlHours: Number(process.env.JOB_CACHE_TTL_HOURS || 6),
+      llmTtlDays: Number(process.env.LLM_CACHE_TTL_DAYS || 14),
+    },
+  },
+
   // Nama komponen tanpa prefix folder: components/financial/DebtInputForm.vue
   // dipakai sebagai <DebtInputForm />.
   components: [{ path: '~/components', pathPrefix: false }],

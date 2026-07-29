@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useFinancialStore } from '~/stores/financial'
 
 useHead({ title: 'Audit Pemulihan Finansial — RintisUlang' })
@@ -8,8 +8,12 @@ const financial = useFinancialStore()
 
 const canCalculate = computed(() => financial.isReady)
 
-function submitAudit() {
+async function submitAudit() {
   financial.markAudited()
+
+  // Bawa user ke hasilnya — tombolnya baru terasa "menghasilkan sesuatu".
+  await nextTick()
+  document.getElementById('simulasi')?.scrollIntoView({ block: 'start' })
 }
 
 function resetAll() {
@@ -24,15 +28,19 @@ function resetAll() {
       <div class="aurora-blob -top-20 -left-16 h-64 w-64 bg-brand-100/50" />
     </div>
 
-    <header class="animate-rise max-w-2xl">
-      <StepProgress :current="1" class="max-w-md" />
-      <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
-        Audit Pemulihan Finansial
-      </h1>
-      <p class="mt-3 text-sm leading-relaxed text-ink-600 sm:text-base">
-        Tujuannya menemukan satu angka yang bisa kamu kejar. Mulai dari biaya hidup; bagian utang
-        diisi hanya kalau kamu memang punya. Isi pelan-pelan, tidak ada yang menilai.
-      </p>
+    <header class="animate-rise flex items-start justify-between gap-6">
+      <div class="max-w-2xl">
+        <StepProgress :current="1" class="max-w-md" />
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+          Audit Pemulihan Finansial
+        </h1>
+        <p class="mt-3 text-sm leading-relaxed text-ink-600 sm:text-base">
+          Tujuannya menemukan satu angka yang bisa kamu kejar. Mulai dari biaya hidup; bagian utang
+          diisi hanya kalau kamu memang punya. Isi pelan-pelan, tidak ada yang menilai.
+        </p>
+      </div>
+
+      <MascotFigure pose="papan" size="md" float eager class="hidden self-center lg:block" />
     </header>
 
     <form class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]" @submit.prevent="submitAudit">
@@ -105,5 +113,9 @@ function resetAll() {
         </p>
       </aside>
     </form>
+
+    <div id="simulasi" class="scroll-mt-24">
+      <SnowballSimulator v-if="financial.hasAudited" />
+    </div>
   </div>
 </template>
