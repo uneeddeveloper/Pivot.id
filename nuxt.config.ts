@@ -12,16 +12,11 @@ export default defineNuxtConfig({
    * Kunci di luar `public` HANYA terbaca di sisi server (server/**). Token
    * Sumopod dan SerpApi tidak boleh sampai ke bundel browser — itu sebabnya
    * seluruh pemanggilan LLM & pencarian lowongan lewat route di `server/api`.
+   *
+   * DATABASE_URL untuk Prisma dibaca langsung dari environment (tidak perlu
+   * di sini) karena Prisma Client tidak menggunakan useRuntimeConfig().
    */
   runtimeConfig: {
-    mysql: {
-      host: process.env.MYSQL_HOST || '127.0.0.1',
-      port: Number(process.env.MYSQL_PORT || 3306),
-      user: process.env.MYSQL_USER || 'root',
-      password: process.env.MYSQL_PASSWORD || '',
-      database: process.env.MYSQL_DATABASE || 'rintisulang',
-      connectionLimit: Number(process.env.MYSQL_CONNECTION_LIMIT || 10),
-    },
     sumopod: {
       apiKey: process.env.SUMOPOD_API_KEY || '',
       baseUrl: process.env.SUMOPOD_BASE_URL || 'https://ai.sumopod.com/v1',

@@ -21,12 +21,23 @@ export default defineEventHandler(async () => {
     }
   }
 
+  // Ambil info koneksi dari DATABASE_URL untuk ditampilkan (tanpa kredensial)
+  const dbUrl = process.env.DATABASE_URL || ''
+  const dbInfo = (() => {
+    try {
+      const url = new URL(dbUrl)
+      return { host: url.host, name: url.pathname.replace('/', '') }
+    } catch {
+      return { host: 'tidak dikonfigurasi', name: '-' }
+    }
+  })()
+
   return {
     database: {
       ok: db.ok,
       error: db.error,
-      host: `${config.mysql.host}:${config.mysql.port}`,
-      name: config.mysql.database,
+      host: dbInfo.host,
+      name: dbInfo.name,
       seeded:
         catalogCount.skills > 0 && catalogCount.roles > 0 && catalogCount.gigs > 0,
       ...catalogCount,

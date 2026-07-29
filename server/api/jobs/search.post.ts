@@ -134,11 +134,11 @@ export default defineEventHandler(async (event): Promise<JobSearchResponse> => {
   if (!body.refresh) {
     const fresh = await findFreshSearch(queryHash)
     if (fresh) {
-      const listings = await loadJobsForSearch(fresh.id)
+      const listings = await loadJobsForSearch(Number(fresh.id))
       return respond(listings, {
         cached: true,
-        fetchedAt: new Date(fresh.fetched_at).toISOString(),
-        totalFound: fresh.raw_count,
+        fetchedAt: new Date(fresh.fetchedAt).toISOString(),
+        totalFound: fresh.rawCount,
         // Hasil tersimpan sudah melewati normalisasi saat pertama diambil.
         llmUsed: true,
       })
