@@ -265,3 +265,67 @@ model LlmCache {
   @@index([expiresAt], map: "idx_llm_cache_expiry")
   @@map("llm_cache")
 }
+
+// ── Auth & Users ─────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid()) @db.VarChar(64)
+  name          String?   @db.VarChar(120)
+  email         String?   @unique @db.VarChar(191)
+  emailVerified DateTime? @map("email_verified")
+  image         String?   @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts      Account[]
+  sessions      Session[]
+  visitorLogs   VisitorLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid()) @db.VarChar(64)
+  userId            String  @map("user_id") @db.VarChar(64)
+  type              String  @db.VarChar(120)
+  provider          String  @db.VarChar(120)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(191)
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(120)
+  scope             String? @db.VarChar(120)
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(120)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_account_user")
+
+  @@unique([provider, providerAccountId], map: "uq_account_provider")
+  @@index([userId], map: "idx_account_user_id")
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid()) @db.VarChar(64)
+  sessionToken String   @unique @map("session_token") @db.VarChar(191)
+  userId       String   @map("user_id") @db.VarChar(64)
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_session_user")
+
+  @@index([userId], map: "idx_session_user_id")
+  @@map("sessions")
+}
+
+model VisitorLog {
+  id        String   @id @default(cuid()) @db.VarChar(64)
+  userId    String   @map("user_id") @db.VarChar(64)
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_visitorlog_user")
+
+  @@index([userId], map: "idx_visitorlog_user_id")
+  @@map("visitor_logs")
+}
