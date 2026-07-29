@@ -62,6 +62,7 @@ function toMatch(job: JobListing, owned: Set<string>, minSalary: number): JobMat
 
 export default defineEventHandler(async (event): Promise<JobSearchResponse> => {
   const body = BodySchema.parse(await readBody(event))
+  
   const config = useRuntimeConfig()
 
   // ── 1. Tentukan kata kunci ────────────────────────────────────────────────
