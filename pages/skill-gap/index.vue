@@ -4,7 +4,7 @@ import { useCareerStore } from '~/stores/career'
 import { useCatalogStore } from '~/stores/catalog'
 import { useFinancialStore } from '~/stores/financial'
 
-useHead({ title: 'Skill Gap & Peran Kerja — RintisUlang' })
+useHead({ title: 'Skill Gap & Peran Kerja — Pivot' })
 
 /**
  * Halaman ini berjalan tiga tahap, dibuka satu per satu:

@@ -13,7 +13,7 @@ import type {
 } from '~/types/financial'
 
 /**
- * Jantung RintisUlang: seluruh matematika pemulihan utang.
+ * Jantung Pivot: seluruh matematika pemulihan utang.
  *
  * ATURAN NON-NEGOTIABLE
  * ---------------------

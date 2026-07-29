@@ -14,7 +14,7 @@ import type { JobSearchResponse } from '~/types/jobs'
  * membentuk angka itu tidak ikut, dan tidak ada apa pun yang disimpan per-user.
  */
 
-useHead({ title: 'Lowongan & CV ATS — RintisUlang' })
+useHead({ title: 'Lowongan & CV ATS — Pivot' })
 
 const financial = useFinancialStore()
 const career = useCareerStore()

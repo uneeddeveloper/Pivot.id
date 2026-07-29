@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+// NuxtLink diimpor dari `#components`, bukan lewat `resolveComponent('NuxtLink')`.
+// Nuxt menyuntikkan komponen auto-import saat kompilasi, jadi tidak ada registrasi
+// global yang bisa ditemukan `resolveComponent` saat runtime — resolusinya gagal dan
+// `<component :is>` jatuh ke elemen mentah yang tidak bisa diklik sama sekali.
+import { NuxtLink } from '#components'
 
 const props = withDefaults(
   defineProps<{
@@ -42,7 +47,7 @@ const showSheen = computed(() => props.variant === 'primary' || props.variant ==
 
 <template>
   <component
-    :is="to ? resolveComponent('NuxtLink') : 'button'"
+    :is="to ? NuxtLink : 'button'"
     v-bind="to ? { to } : { type, disabled }"
     :class="classes"
   >

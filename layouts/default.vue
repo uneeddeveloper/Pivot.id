@@ -30,9 +30,7 @@ const helplines = [
           class="focus-ring group flex items-center gap-2.5 rounded-xl pr-2 transition"
         >
           <LogoMark size="sm" />
-          <span class="text-base font-semibold tracking-tight text-brand-800">
-            Rintis<span class="text-brand-500">Ulang</span>
-          </span>
+          <span class="text-base font-semibold tracking-tight text-brand-800">Pivot</span>
         </NuxtLink>
 
         <nav class="hidden items-center gap-0.5 md:flex">
@@ -87,9 +85,7 @@ const helplines = [
           <div>
             <div class="flex items-center gap-2.5">
               <LogoMark size="sm" />
-              <span class="text-sm font-semibold text-brand-800">
-                Rintis<span class="text-brand-500">Ulang</span>
-              </span>
+              <span class="text-sm font-semibold text-brand-800">Pivot</span>
             </div>
             <div class="mt-3 flex items-center gap-3">
               <MascotFigure pose="hati" size="xs" />
@@ -98,7 +94,7 @@ const helplines = [
               </p>
             </div>
             <p class="mt-3 text-xs leading-relaxed text-ink-400">
-              RintisUlang bukan lembaga keuangan dan tidak memberikan pinjaman.
+              Pivot bukan lembaga keuangan dan tidak memberikan pinjaman.
             </p>
           </div>
 
@@ -149,7 +145,7 @@ const helplines = [
             </svg>
             Data utang diproses sepenuhnya di perangkat ini.
           </p>
-          <p class="sm:ml-auto">© {{ new Date().getFullYear() }} RintisUlang</p>
+          <p class="sm:ml-auto">© {{ new Date().getFullYear() }} Pivot</p>
         </div>
       </div>
     </footer>

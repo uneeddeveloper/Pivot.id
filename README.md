@@ -1,4 +1,4 @@
-# RintisUlang (KarirPulih)
+# Pivot
 
 Platform navigasi karir dan pemulihan finansial di Indonesia. Melayani tiga titik berangkat:
 **fresh graduate** yang belum tahu gaji berapa yang layak diambil, **korban PHK** yang perlu
@@ -331,7 +331,7 @@ sama dengan logo: memulai lagi. Dipakai lewat satu komponen,
 
 ```vue
 <MascotFigure pose="papan" size="md" float />
-<MascotFigure pose="hai" size="sm" alt="Maskot RintisUlang melambaikan sayap" />
+<MascotFigure pose="hai" size="sm" alt="Maskot Pivot melambaikan sayap" />
 ```
 
 **Tiap pose punya satu makna tetap.** Konsistensi inilah yang membuatnya terbaca sebagai satu

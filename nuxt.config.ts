@@ -56,7 +56,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'id' },
-      title: 'RintisUlang — Navigasi Karir & Pemulihan Finansial',
+      title: 'Pivot — Navigasi Karir & Pemulihan Finansial',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -68,6 +68,8 @@ export default defineNuxtConfig({
         },
       ],
       link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/favicon.png' },
         // Inter (teks) + Plus Jakarta Sans (judul). Kalau jaringan mati saat demo,
         // rantai fallback di --font-sans / --font-display tetap menahan tampilan.
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

@@ -2,7 +2,7 @@
 import { computed, nextTick } from 'vue'
 import { useFinancialStore } from '~/stores/financial'
 
-useHead({ title: 'Audit Pemulihan Finansial — RintisUlang' })
+useHead({ title: 'Audit Pemulihan Finansial — Pivot' })
 
 const financial = useFinancialStore()
 

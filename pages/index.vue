@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: 'RintisUlang — Berapa penghasilan yang benar-benar kamu butuhkan?' })
+useHead({ title: 'Pivot — Berapa penghasilan yang benar-benar kamu butuhkan?' })
 
 /**
  * Tiga kondisi awal yang dilayani. Urutannya sengaja dimulai dari fresh graduate
@@ -79,27 +79,15 @@ const preview = {
         class="mx-auto grid max-w-5xl items-center gap-12 px-4 pt-14 pb-16 sm:px-6 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10"
       >
         <div class="animate-rise">
-          <p
-            class="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-3 py-1 text-xs font-medium text-brand-700 backdrop-blur-sm"
-          >
-            <span class="relative flex h-1.5 w-1.5">
-              <span
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75"
-              />
-              <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-600" />
-            </span>
-            Untuk kamu yang baru memulai — dan yang sedang memulai lagi
-          </p>
-
           <h1
-            class="mt-5 max-w-2xl text-4xl leading-[1.1] font-bold tracking-tight text-ink-900 sm:text-5xl"
+            class="max-w-2xl text-4xl leading-[1.1] font-bold tracking-tight text-ink-900 sm:text-5xl"
           >
             Berapa penghasilan yang
             <span class="text-gradient-brand">benar-benar</span> kamu butuhkan?
           </h1>
 
           <p class="mt-5 max-w-xl text-base leading-relaxed text-ink-600 sm:text-lg">
-            RintisUlang mengubah biaya hidup dan kewajibanmu menjadi satu angka:
+            Pivot mengubah biaya hidup dan kewajibanmu menjadi satu angka:
             <strong class="font-semibold text-ink-800">Target Income</strong>. Dari angka itu kami
             bantu menemukan peran kerja yang gajinya benar-benar menutupi, keterampilan yang perlu
             dikejar, dan CV yang lolos screening.
@@ -137,7 +125,7 @@ const preview = {
                 pose="hai"
                 size="sm"
                 eager
-                alt="Maskot RintisUlang melambaikan sayap"
+                alt="Maskot Pivot melambaikan sayap"
               />
               <p
                 class="mb-3 rounded-2xl rounded-bl-md border border-cream-300 bg-white/85 px-3.5 py-2.5 text-xs leading-relaxed text-ink-600 shadow-soft backdrop-blur-sm"

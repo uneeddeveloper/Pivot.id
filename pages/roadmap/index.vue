@@ -14,7 +14,7 @@ import type { Roadmap } from '~/types/career'
  * server sehingga kombinasi skill yang sama tidak dibayar dua kali.
  */
 
-useHead({ title: 'Roadmap Belajar — RintisUlang' })
+useHead({ title: 'Roadmap Belajar — Pivot' })
 
 const financial = useFinancialStore()
 const career = useCareerStore()

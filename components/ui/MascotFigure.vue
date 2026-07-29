@@ -12,7 +12,7 @@ import tidur from '~/assets/img/tidur.webp'
 import type { MascotPose, MascotSize } from '~/types/mascot'
 
 /**
- * Maskot RintisUlang dalam satu pose. Berkasnya diimpor lewat Vite (bukan dari
+ * Maskot Pivot dalam satu pose. Berkasnya diimpor lewat Vite (bukan dari
  * `public/`) supaya ikut di-hash dan di-cache permanen oleh browser.
  *
  * Yang dipakai adalah `.webp` — versi turunan dari PNG master di folder yang

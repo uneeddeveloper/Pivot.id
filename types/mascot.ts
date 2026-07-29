@@ -1,5 +1,5 @@
 /**
- * Pose maskot RintisUlang (anak burung feniks — lahir kembali dari abu, dengan
+ * Pose maskot Pivot (anak burung feniks — lahir kembali dari abu, dengan
  * lambang daur ulang di dadanya). Nama pose sengaja memakai bahasa Indonesia
  * supaya cocok dengan nama berkasnya di `assets/img/`.
  *

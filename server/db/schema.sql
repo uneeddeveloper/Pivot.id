@@ -1,5 +1,5 @@
 -- ────────────────────────────────────────────────────────────────────────────
--- RintisUlang — skema MySQL 8
+-- Pivot — skema MySQL 8
 --
 -- APA YANG ADA DI SINI
 --   Katalog keterampilan & peran kerja, lowongan hasil pencarian Google Jobs,

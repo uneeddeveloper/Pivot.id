@@ -1,28 +1,30 @@
 <script setup lang="ts">
+import logo from '~/assets/img/logo.webp'
+
 /**
- * Lambang RintisUlang: tiga anak tangga yang menanjak, diakhiri titik terang.
- * Metaforanya sengaja "naik bertahap", bukan roket — pemulihan itu bertahap.
+ * Lambang Pivot: huruf P dengan grafik yang berbelok lalu menanjak di dalamnya.
+ * Metaforanya berputar arah — bukan mengulang jalan yang sama.
+ *
+ * Sumbernya `.webp` turunan dari `logo.png` di folder yang sama: bidang
+ * transparan di tepinya dibuang dan sisi terpanjang dipotong ke 256px (cukup
+ * untuk layar 3x DPR pada ukuran terbesar). 12 KB, bukan 128 KB — PNG masternya
+ * jangan pernah dirujuk langsung dari komponen.
+ *
+ * Selalu dekoratif: setiap pemakaiannya berdampingan dengan wordmark "Pivot",
+ * jadi gambarnya disembunyikan dari pembaca layar supaya nama aplikasi tidak
+ * dibacakan dua kali.
  */
 withDefaults(defineProps<{ size?: 'sm' | 'md' }>(), { size: 'md' })
 </script>
 
 <template>
-  <span
-    class="relative flex shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand-500 to-brand-700 text-cream-50 shadow-brand"
-    :class="size === 'sm' ? 'h-7 w-7' : 'h-9 w-9'"
+  <img
+    :src="logo"
+    alt=""
     aria-hidden="true"
-  >
-    <svg
-      :class="size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.9"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M3 15.5h3.2v-3.2M6.2 12.3h3.2V9.1M9.4 9.1h3.2V5.9" />
-      <circle cx="15.6" cy="4.4" r="1.7" fill="currentColor" stroke="none" />
-    </svg>
-  </span>
+    decoding="async"
+    draggable="false"
+    class="w-auto shrink-0 select-none [filter:drop-shadow(0_4px_8px_rgb(113_20_11/0.25))]"
+    :class="size === 'sm' ? 'h-7' : 'h-9'"
+  />
 </template>
