@@ -30,7 +30,7 @@ const stages = [
   {
     step: '01',
     title: 'Audit Pemulihan Finansial',
-    body: 'Petakan biaya hidup dan kewajiban utang — kalau ada. Hasilnya satu angka: Target Income, penghasilan bulanan yang membuatmu berdiri stabil.',
+    body: 'Petakan biaya hidup dan kewajiban utang - kalau ada. Hasilnya satu angka: Target Income, penghasilan bulanan yang membuatmu berdiri stabil.',
     to: '/audit',
     ready: true,
   },
@@ -51,7 +51,7 @@ const stages = [
   {
     step: '04',
     title: 'CV ATS & Papan Lowongan',
-    body: 'CV siap lolos screening otomatis, plus lowongan asli yang sudah difilter dengan ambang Target Income-mu — lengkap dengan tanda untuk yang patut dicurigai.',
+    body: 'CV siap lolos screening otomatis, plus lowongan asli yang sudah difilter dengan ambang Target Income-mu lengkap dengan tanda untuk yang patut dicurigai.',
     to: '/jobs',
     ready: true,
   },
@@ -172,7 +172,7 @@ const preview = {
                   <div class="h-full w-2/3 rounded-full bg-cream-200" />
                 </div>
                 <p class="mt-2 text-xs text-cream-100/70">
-                  Contoh tampilan — angkamu akan berbeda.
+                  Contoh tampilan - angkamu akan berbeda.
                 </p>
               </div>
 
@@ -218,7 +218,7 @@ const preview = {
       <p
         class="attention-note mt-5 max-w-2xl text-sm leading-relaxed"
       >
-        Belum punya utang sama sekali? Tidak masalah — bagian utang boleh dilewati, dan Target
+        Belum punya utang sama sekali? Tidak masalah - bagian utang boleh dilewati, dan Target
         Income-mu dihitung dari biaya hidup saja.
       </p>
     </section>

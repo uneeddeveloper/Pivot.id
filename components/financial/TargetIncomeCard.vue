@@ -20,6 +20,16 @@ const debtShare = computed(() => {
   if (target <= 0) return 0
   return Math.min(100, (summary.value.totalMinPayment / target) * 100)
 })
+
+/** Mengecek apakah ada utang yang menggunakan mode sederhana */
+const hasSimplifiedDebts = computed(() =>
+  financial.validDebts.some((d) => d.calcMode === 'simplified')
+)
+
+/** Mengecek apakah ada utang detail yang memiliki bunga > 0 */
+const hasDetailedDebtsWithInterest = computed(() =>
+  financial.validDebts.some((d) => d.calcMode === 'detailed' && d.interestRate > 0)
+)
 </script>
 
 <template>
@@ -51,8 +61,8 @@ const debtShare = computed(() => {
       <p class="mt-2.5 text-sm leading-relaxed text-cream-100/85">
         {{
           hasDebt
-            ? 'Ini penghasilan bersih per bulan yang membuatmu bertahan tanpa menambah utang baru. Bukan angka impian — ini garis aman yang akan kita kejar bersama.'
-            : 'Ini penghasilan bersih per bulan yang membuatmu berdiri stabil. Jadikan angka ini batas bawah saat menimbang tawaran kerja — bukan angka impian, tapi garis amanmu.'
+            ? 'Ini penghasilan bersih per bulan yang membuatmu bertahan tanpa menambah utang baru. Bukan angka impian - ini garis aman yang akan kita kejar bersama.'
+            : 'Ini penghasilan bersih per bulan yang membuatmu berdiri stabil. Jadikan angka ini batas bawah saat menimbang tawaran kerja - bukan angka impian, tapi garis amanmu.'
         }}
       </p>
     </template>
@@ -95,19 +105,38 @@ const debtShare = computed(() => {
     </p>
 
     <div v-if="hasDebt" class="mt-5 grid gap-3 sm:grid-cols-2">
-      <div class="rounded-xl border border-cream-100/10 bg-brand-900/30 px-4 py-3 backdrop-blur-sm">
-        <p class="text-xs text-cream-100/70">Total sisa utang</p>
-        <p class="mt-1 font-semibold tabular-nums text-cream-50">
-          {{ formatIDR(summary.totalDebt) }}
-        </p>
-      </div>
-      <div class="rounded-xl border border-cream-100/10 bg-brand-900/30 px-4 py-3 backdrop-blur-sm">
-        <p class="text-xs text-cream-100/70">Bunga berjalan / bulan</p>
-        <p class="mt-1 font-semibold tabular-nums text-cream-50">
+    <!-- Card Total Sisa Utang -->
+    <div class="rounded-xl border border-cream-100/10 bg-brand-900/30 px-4 py-3 backdrop-blur-sm">
+      <p class="text-xs text-cream-100/70">Total sisa utang</p>
+      <p class="mt-1 font-semibold tabular-nums text-cream-50">
+        {{ formatIDR(summary.totalDebt) }}
+      </p>
+    </div>
+
+    <!-- Card Bunga Berjalan -->
+    <div class="rounded-xl border border-cream-100/10 bg-brand-900/30 px-4 py-3 backdrop-blur-sm">
+      <p class="text-xs text-cream-100/70">Bunga berjalan / bulan</p>
+      
+      <!-- KONDISI 1: Semua utang berupa Sederhana/Paylater -->
+      <p 
+        v-if="hasSimplifiedDebts && !hasDetailedDebtsWithInterest" 
+        class="mt-1.5 text-sm font-medium text-cream-100/90"
+      >
+        Termasuk dalam cicilan
+      </p>
+
+      <!-- KONDISI 2: Ada utang Detail (atau campuran) -->
+      <div v-else class="mt-1">
+        <p class="font-semibold tabular-nums text-cream-50">
           {{ formatIDR(financial.monthlyInterest) }}
+        </p>
+        <!-- Catatan tambahan jika ada campuran utang Paylater -->
+        <p v-if="hasSimplifiedDebts" class="mt-0.5 text-[11px] text-cream-100/60">
+          + utang paylater (sudah flat)
         </p>
       </div>
     </div>
+  </div>
 
     <template #footer>
       <div v-if="simulation.feasible && simulation.months > 0" class="space-y-2">
@@ -123,7 +152,7 @@ const debtShare = computed(() => {
             Dengan dana
             <strong class="font-semibold">{{ formatIDR(simulation.monthlyBudget) }}</strong> per
             bulan, utangmu diperkirakan lunas dalam
-            <strong class="font-semibold">{{ formatDuration(simulation.months) }}</strong> — sekitar
+            <strong class="font-semibold">{{ formatDuration(simulation.months) }}</strong> - sekitar
             <strong class="font-semibold">{{ formatMonthYear(simulation.debtFreeDate) }}</strong
             >.
           </p>
@@ -139,7 +168,7 @@ const debtShare = computed(() => {
       >
         <p class="text-sm leading-relaxed text-cream-50">
           Dengan dana bulanan saat ini, bunga masih tumbuh lebih cepat daripada pembayaran. Ini
-          bukan salahmu — bunga pinjaman ilegal memang dirancang seperti itu.
+          bukan salahmu, bunga pinjaman ilegal memang dirancang seperti itu.
         </p>
         <p class="text-sm leading-relaxed text-cream-50">
           Titik balik terjadi saat dana bulanan mencapai sekitar

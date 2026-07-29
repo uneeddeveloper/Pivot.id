@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useFinancialStore } from '~/stores/financial'
 import type { SimulationResult } from '~/types/financial'
 
 /**
@@ -9,9 +10,19 @@ import type { SimulationResult } from '~/types/financial'
  * ini figur tunggal berukuran display, bukan kolom angka yang harus sejajar.
  */
 const props = defineProps<{ simulation: SimulationResult }>()
+const financial = useFinancialStore() // Inisialisasi store
 
 const years = computed(() => Math.floor(props.simulation.months / 12))
 const restMonths = computed(() => props.simulation.months % 12)
+
+/** Mengecek tipe utang untuk penyesuaian UI */
+const hasOnlySimplifiedDebts = computed(() =>
+  financial.validDebts.length > 0 && 
+  financial.validDebts.every((d) => d.calcMode === 'simplified')
+)
+const hasSimplifiedDebts = computed(() =>
+  financial.validDebts.some((d) => d.calcMode === 'simplified')
+)
 
 /** Porsi bunga terhadap seluruh uang yang akan dibayarkan. */
 const interestShare = computed(() => {
@@ -72,23 +83,37 @@ const principalPaid = computed(() =>
 
       <!-- Meter satu warna: porsi bunga dari total yang dibayar. -->
       <div class="mt-5">
-        <div class="flex items-baseline justify-between gap-3">
-          <p class="text-xs text-ink-500">Porsi bunga dari total pembayaran</p>
-          <p class="text-xs font-semibold tabular-nums text-ink-700">
-            {{ Math.round(interestShare) }}%
-          </p>
-        </div>
-
-        <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-brand-100">
-          <div
-            class="h-full rounded-full bg-brand-600 transition-all duration-500 ease-out"
-            :style="{ width: `${interestShare}%` }"
-          />
-        </div>
+        <!-- Tampilan Jika 100% Utang Paylater (Sederhana) -->
+        <template v-if="hasOnlySimplifiedDebts">
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="text-xs text-ink-500">Skema Bunga</p>
+            <p class="text-xs font-semibold text-ink-700 bg-sage-100/50 px-2 py-0.5 rounded-md border border-sage-200">
+              Flat (Sudah masuk cicilan)
+            </p>
+          </div>
+        </template>
+        
+        <!-- Tampilan Standar (Ada utang berbunga tradisional) -->
+        <template v-else>
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="text-xs text-ink-500">Porsi bunga dari total pembayaran</p>
+            <p class="text-xs font-semibold tabular-nums text-ink-700">
+              {{ Math.round(interestShare) }}%
+            </p>
+          </div>
+          <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-brand-100">
+            <div
+              class="h-full rounded-full bg-brand-600 transition-all duration-500 ease-out"
+              :style="{ width: `${interestShare}%` }"
+            />
+          </div>
+        </template>
 
         <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
           <div class="rounded-xl border border-ink-200/70 bg-white/70 px-3 py-2">
-            <dt class="text-xs text-ink-500">Menghapus pokok</dt>
+            <dt class="text-xs text-ink-500">
+              {{ hasOnlySimplifiedDebts ? 'Total Tagihan' : 'Menghapus pokok' }}
+            </dt>
             <dd class="mt-0.5 font-semibold tabular-nums text-ink-800">
               {{ formatIDR(principalPaid) }}
             </dd>
@@ -96,7 +121,17 @@ const principalPaid = computed(() =>
           <div class="rounded-xl border border-ink-200/70 bg-white/70 px-3 py-2">
             <dt class="text-xs text-ink-500">Terbayar sebagai bunga</dt>
             <dd class="mt-0.5 font-semibold tabular-nums text-ink-800">
-              {{ formatIDR(simulation.totalInterest) }}
+              <!-- Jika utang paylater semua -->
+              <span v-if="hasOnlySimplifiedDebts" class="text-xs font-medium text-ink-600">
+                Sudah All-in
+              </span>
+              <!-- Jika ada utang biasa / campur -->
+              <span v-else>
+                {{ formatIDR(simulation.totalInterest) }}
+                <span v-if="hasSimplifiedDebts" class="block text-[10px] font-normal text-ink-400 mt-0.5 leading-tight">
+                  *di luar bunga paylater
+                </span>
+              </span>
             </dd>
           </div>
         </dl>
