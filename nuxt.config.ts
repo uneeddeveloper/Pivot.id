@@ -1,5 +1,25 @@
 import tailwindcss from '@tailwindcss/vite'
 
+/**
+ * Origin publik aplikasi, dipakai @sidebase/nuxt-auth untuk menyusun URL callback.
+ *
+ * PENTING: modul `nuxt-auth` memasang Nitro plugin `assertOrigin` yang MELEMPAR
+ * error saat server start kalau origin tidak ketemu di production. Di Vercel itu
+ * berarti seluruh serverless function gagal boot — semua halaman 500
+ * (FUNCTION_INVOCATION_FAILED), bukan cuma /api/auth.
+ *
+ * Set `AUTH_ORIGIN` di Vercel → Settings → Environment Variables ke domain tetap
+ * (mis. https://pivot.vercel.app). `VERCEL_PROJECT_PRODUCTION_URL` hanya jaring
+ * pengaman supaya situs tetap hidup kalau env var itu lupa diisi — URL-nya ikut
+ * berubah tiap deploy, jadi jangan diandalkan untuk OAuth Google.
+ */
+const authOrigin =
+  process.env.AUTH_ORIGIN ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : '') ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -10,6 +30,10 @@ export default defineNuxtConfig({
     // Pada Vercel, WAJIB set Environment Variable:
     // AUTH_ORIGIN = https://<domain-vercel>.vercel.app
     // AUTH_SECRET = <string-acak>
+    //
+    // Dikosongkan saat dev supaya origin diambil dari request (localhost:3000,
+    // port berapa pun). Lihat komentar `authOrigin` di atas.
+    baseURL: authOrigin ? `${authOrigin}/api/auth` : undefined,
     provider: {
       type: 'authjs',
     },
