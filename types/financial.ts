@@ -29,6 +29,10 @@ export interface Debt {
    * String kosong berarti user belum/tidak mengisi — bukan error.
    */
   dueDate: string
+
+  calcMode?: 'simplified' | 'detailed'
+  totalAmount?: number
+  tenorMonths?: number
 }
 
 /** Tingkat kedekatan jatuh tempo, dipakai untuk urutan dan penekanan visual. */

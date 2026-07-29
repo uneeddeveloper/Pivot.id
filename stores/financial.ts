@@ -37,6 +37,10 @@ export function createEmptyDebt(partial: Partial<Debt> = {}): Debt {
     ratePeriod: 'monthly' as RatePeriod,
     minPayment: 0,
     dueDate: '',
+    // Tambahan default properti baru:
+    calcMode: 'simplified', // Jadikan mode Paylater sebagai default
+    totalAmount: 0,
+    tenorMonths: 0,
     ...partial,
   }
 }
@@ -143,7 +147,14 @@ export const useFinancialStore = defineStore('financial', {
 
   actions: {
     addDebt(partial: Partial<Debt> = {}) {
-      this.debts.push(createEmptyDebt(partial))
+      const newDebt = createEmptyDebt(partial)
+      
+      // Mencegah kebocoran data jika user menambah utang dengan template
+      if (newDebt.calcMode === 'simplified') {
+        newDebt.interestRate = 0
+      }
+      
+      this.debts.push(newDebt)
     },
 
     removeDebt(id: string) {
@@ -153,7 +164,22 @@ export const useFinancialStore = defineStore('financial', {
 
     updateDebt(id: string, patch: Partial<Debt>) {
       const debt = this.debts.find((item) => item.id === id)
-      if (debt) Object.assign(debt, patch)
+      if (debt) {
+        // 1. Terapkan perubahan dari form terlebih dahulu
+        Object.assign(debt, patch)
+        
+        // 2. RESET PAKSA: Jika mode Sederhana/Paylater, bunga wajib 0.
+        // Ini akan otomatis membersihkan sisa angka 1% yang tertinggal
+        // ketika user berpindah dari mode Detail ke Sederhana.
+        if (debt.calcMode === 'simplified') {
+          debt.interestRate = 0
+          
+          // (Opsional) Jika engine simulasi Anda membaca 'principal' dan 'minPayment',
+          // Anda bisa menyinkronkannya di sini agar perhitungannya otomatis jalan:
+          // debt.principal = debt.totalAmount
+          // debt.minPayment = debt.tenorMonths > 0 ? debt.totalAmount / debt.tenorMonths : 0
+        }
+      }
     },
 
     setStrategy(strategy: PayoffStrategy) {

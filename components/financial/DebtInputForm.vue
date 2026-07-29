@@ -7,7 +7,7 @@ const financial = useFinancialStore()
 <template>
   <BaseCard
     title="Utang yang sedang berjalan"
-    subtitle="Belum punya utang? Lewati bagian ini. Kalau ada yang belum kamu ingat angkanya, isi perkiraan dulu — nanti mudah diubah."
+    subtitle="Belum punya utang? Lewati bagian ini. Kalau ada yang belum kamu ingat angkanya, isi perkiraan dulu nanti mudah diubah."
   >
     <template #icon>
       <svg

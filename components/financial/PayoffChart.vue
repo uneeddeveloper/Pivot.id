@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useFinancialStore } from '~/stores/financial'
 import type { MonthSnapshot, PayoffMilestone } from '~/types/financial'
 
 /**
@@ -29,6 +30,18 @@ interface Point {
   x: number
   y: number
 }
+
+const financial = useFinancialStore() // 2. Inisialisasi store
+
+/** 3. Tambahkan pengecekan tipe utang */
+const hasOnlySimplifiedDebts = computed(() =>
+  financial.validDebts.length > 0 &&
+  financial.validDebts.every((d) => d.calcMode === 'simplified')
+)
+
+const hasSimplifiedDebts = computed(() =>
+  financial.validDebts.some((d) => d.calcMode === 'simplified')
+)
 
 /** Jumlah sela antar garis bantu horizontal. */
 const Y_INTERVALS = 4
@@ -312,9 +325,20 @@ const summaryLabel = computed(
             <p class="mt-0.5 text-sm font-semibold tabular-nums text-ink-900">
               {{ formatIDR(activePoint.remaining) }}
             </p>
-            <p v-if="activePoint.month > 0" class="mt-1 text-[11px] tabular-nums text-ink-500">
-              Bunga terkumpul {{ formatIDR(activePoint.cumulativeInterest) }}
-            </p>
+            
+            <!-- PENYESUAIAN BUNGA TOOLTIP -->
+            <div v-if="activePoint.month > 0" class="mt-1 text-[11px] tabular-nums text-ink-500">
+              <template v-if="hasOnlySimplifiedDebts">
+                Bunga: Sudah All-in
+              </template>
+              <template v-else>
+                Bunga terkumpul {{ formatIDR(activePoint.cumulativeInterest) }}
+                <span v-if="hasSimplifiedDebts" class="block text-[9px] leading-tight text-ink-400 mt-0.5">
+                  *di luar paylater
+                </span>
+              </template>
+            </div>
+            
             <p v-if="activePoint.cleared.length" class="mt-1 text-[11px] font-medium text-sage-700">
               {{ activePoint.cleared.join(', ') }} lunas
             </p>
@@ -363,7 +387,15 @@ const summaryLabel = computed(
               {{ point.month === 0 ? '—' : formatIDR(point.paid) }}
             </td>
             <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-500">
-              {{ point.month === 0 ? '—' : formatIDR(point.cumulativeInterest) }}
+              <template v-if="point.month === 0">
+                -
+              </template>
+              <template v-else-if="hasOnlySimplifiedDebts">
+                All-in
+              </template>
+              <template v-else>
+                {{ formatIDR(point.cumulativeInterest) }}
+              </template>
             </td>
           </tr>
         </tbody>

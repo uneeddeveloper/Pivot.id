@@ -28,6 +28,11 @@ const interestGap = computed(() => {
 })
 
 const milestones = computed(() => simulation.value.payoffOrder)
+
+const hasOnlySimplifiedDebts = computed(() =>
+  financial.validDebts.length > 0 &&
+  financial.validDebts.every((d) => d.calcMode === 'simplified')
+)
 </script>
 
 <template>
@@ -116,11 +121,15 @@ const milestones = computed(() => simulation.value.payoffOrder)
                 <div class="flex justify-between gap-2">
                   <dt class="text-ink-500">Total bunga</dt>
                   <dd class="tabular-nums text-ink-700">
-                    {{
-                      comparison[option.value].feasible
-                        ? formatIDR(comparison[option.value].totalInterest)
-                        : '—'
-                    }}
+                    <template v-if="!comparison[option.value].feasible">
+                      —
+                    </template>
+                    <template v-else-if="hasOnlySimplifiedDebts">
+                      <span class="text-[11px] font-medium text-ink-500">Sudah All-in</span>
+                    </template>
+                    <template v-else>
+                      {{ formatIDR(comparison[option.value].totalInterest) }}
+                    </template>
                   </dd>
                 </div>
               </dl>
