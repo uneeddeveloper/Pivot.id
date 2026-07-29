@@ -1,7 +1,5 @@
 import { getServerSession } from '#auth'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../../db/prisma'
 
 export default defineEventHandler(async (event) => {
   // 1. Get the current user session

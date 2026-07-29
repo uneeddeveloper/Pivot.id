@@ -1,12 +1,10 @@
 import { NuxtAuthHandler } from '#auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../../db/prisma'
 
 export default NuxtAuthHandler({
-  secret: process.env.AUTH_SECRET || 'super-secret-default-key-please-change',
+  secret: process.env.AUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   providers: [
     // @ts-expect-error - NextAuth types issue with import default
@@ -25,3 +23,4 @@ export default NuxtAuthHandler({
     }
   }
 })
+

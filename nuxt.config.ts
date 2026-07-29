@@ -7,11 +7,9 @@ export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '@sidebase/nuxt-auth'],
 
   auth: {
-    // baseURL WAJIB diisi dengan path penuh ke endpoint auth API.
-    // Format: <origin>/api/auth  — ini yang dipakai oleh NuxtAuthHandler di server/api/auth/[...].ts
-    baseURL: process.env.AUTH_ORIGIN
-      ? `${process.env.AUTH_ORIGIN}/api/auth`
-      : 'http://localhost:3000/api/auth',
+    // baseURL HARUS mengarah ke /api/auth — path di mana NuxtAuthHandler terdaftar.
+    // AUTH_ORIGIN di .env untuk override di production.
+    baseURL: (process.env.AUTH_ORIGIN ?? 'http://localhost:3000') + '/api/auth',
     provider: {
       type: 'authjs',
     },
