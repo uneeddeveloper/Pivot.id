@@ -57,19 +57,7 @@ const percent = computed(() => ((props.current - 1) / (steps.length - 1)) * 100)
                     : 'border-ink-200 bg-white text-ink-400 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-ink-600'
               "
             >
-              <svg
-                v-if="index + 1 < current"
-                class="h-3.5 w-3.5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
-                  clip-rule="evenodd"
-                />
-              </svg>
+              <Icon name="lucide:check" v-if="index + 1 < current" class="h-3.5 w-3.5" aria-hidden="true" />
               <template v-else>{{ index + 1 }}</template>
             </span>
           </NuxtLink>

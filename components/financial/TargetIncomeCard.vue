@@ -46,13 +46,7 @@ const hasDetailedDebtsWithInterest = computed(() =>
 
     <template #header>
       <p class="flex items-center gap-2 text-xs font-medium tracking-wide text-cream-100/75 uppercase">
-        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path
-            fill-rule="evenodd"
-            d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm0 3a.75.75 0 0 1 .75.75v.6a2.5 2.5 0 0 1 .35 4.8l-1.85.62a1 1 0 0 0 .32 1.95h.18c.4 0 .77-.24.92-.6a.75.75 0 0 1 1.38.58 2.5 2.5 0 0 1-2.05 1.5v.55a.75.75 0 0 1-1.5 0v-.6a2.5 2.5 0 0 1-.35-4.8l1.85-.62a1 1 0 0 0-.32-1.95h-.18c-.4 0-.77.24-.92.6a.75.75 0 1 1-1.38-.58A2.5 2.5 0 0 1 9.25 5.6v-.85A.75.75 0 0 1 10 5Z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <Icon name="lucide:target" class="h-3.5 w-3.5" aria-hidden="true" />
         Target Income Bulanan
       </p>
       <p class="animate-count-in mt-2 text-4xl font-bold tracking-tight tabular-nums text-cream-50 sm:text-[2.75rem]">
@@ -141,13 +135,7 @@ const hasDetailedDebtsWithInterest = computed(() =>
     <template #footer>
       <div v-if="simulation.feasible && simulation.months > 0" class="space-y-2">
         <div class="flex items-center gap-2 text-cream-50">
-          <svg class="h-4 w-4 shrink-0 text-cream-200" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.7-9.3a1 1 0 0 0-1.4-1.4L9 10.58 7.7 9.3a1 1 0 0 0-1.4 1.4l2 2a1 1 0 0 0 1.4 0l4-4Z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <Icon name="lucide:check-circle" class="h-4 w-4 shrink-0 text-cream-200" />
           <p class="text-sm leading-relaxed">
             Dengan dana
             <strong class="font-semibold">{{ formatIDR(simulation.monthlyBudget) }}</strong> per

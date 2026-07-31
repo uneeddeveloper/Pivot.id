@@ -158,7 +158,7 @@ export async function fetchGoogleJobs(input: GoogleJobsQuery): Promise<RawGoogle
       quotaHit ? 'quota' : 'http_error',
       quotaHit
         ? 'Kuota pencarian lowongan bulan ini sudah habis.'
-        : 'Layanan pencarian lowongan mengembalikan error.',
+        : 'Layanan pencarian lowongan sedang sibuk.',
     )
     console.error('[jobs:serpapi]', error.message)
     throw error

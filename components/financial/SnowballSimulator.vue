@@ -150,17 +150,7 @@ const hasOnlySimplifiedDebts = computed(() =>
         subtitle="Garisnya menurun karena dana bulanan dijaga tetap. Arahkan kursor — atau gunakan tombol panah — untuk melihat angka tiap bulan."
       >
         <template #icon>
-          <svg
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 3v14h14M6 13l3.5-4 2.5 2.5L17 6" />
-          </svg>
+          <Icon name="lucide:line-chart" class="h-5 w-5" />
         </template>
 
         <PayoffChart

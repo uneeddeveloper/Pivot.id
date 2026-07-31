@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useCareerStore } from '~/stores/career'
 import { useCatalogStore } from '~/stores/catalog'
 import { useFinancialStore } from '~/stores/financial'
@@ -32,6 +32,15 @@ const roleId = ref<string>(
 const freeQuery = ref('')
 const location = ref('')
 const remoteOnly = ref(false)
+
+const freeQueryInput = ref<HTMLInputElement | null>(null)
+
+watch(roleId, async (newVal) => {
+  if (!newVal) {
+    await nextTick()
+    freeQueryInput.value?.focus()
+  }
+})
 
 const result = ref<JobSearchResponse | null>(null)
 const searching = ref(false)
@@ -164,18 +173,7 @@ if (roleId.value) await search()
     <!-- ── Kontrol pencarian ────────────────────────────────────────────── -->
     <BaseCard v-reveal title="Cari lowongan" class="relative z-10 mt-8">
       <template #icon>
-        <svg
-          class="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="9" cy="9" r="5.5" />
-          <path d="m13 13 4 4" />
-        </svg>
+        <Icon name="lucide:search" class="h-5 w-5" />
       </template>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -184,7 +182,7 @@ if (roleId.value) await search()
           field-id="job-role"
           hint="Dari katalog peran di langkah 2."
         >
-          <select id="job-role" v-model="roleId" class="field-input-dark">
+          <select id="job-role" v-model="roleId" class="field-input">
             <option value="">— Ketik kata kunci sendiri —</option>
             <option v-for="role in catalog.roles" :key="role.id" :value="role.id">
               {{ role.title }}
@@ -200,9 +198,10 @@ if (roleId.value) await search()
         >
           <input
             id="job-query"
+            ref="freeQueryInput"
             v-model="freeQuery"
             type="text"
-            class="field-input-dark"
+            class="field-input"
             placeholder="Ketik posisi yang kamu cari"
             @keyup.enter="search()"
           />
@@ -217,8 +216,8 @@ if (roleId.value) await search()
             id="job-location"
             v-model="location"
             type="text"
-            class="field-input-dark"
-            placeholder="Jakarta, Bandung, Surabaya…"
+            class="field-input"
+            placeholder="Mis. Jakarta atau Bandung"
             @keyup.enter="search()"
           />
         </FormField>
@@ -240,18 +239,7 @@ if (roleId.value) await search()
       <template #footer>
         <div class="flex flex-wrap items-center gap-3">
           <BaseButton :disabled="!canSearch || searching" @click="search()">
-            <svg
-              v-if="searching"
-              class="h-4 w-4 animate-spin"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
-            >
-              <circle cx="10" cy="10" r="7" class="opacity-25" />
-              <path d="M17 10a7 7 0 0 0-7-7" stroke-linecap="round" />
-            </svg>
+            <Icon v-if="searching" name="lucide:loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
             {{ searching ? 'Mencari…' : 'Cari lowongan' }}
           </BaseButton>
 
@@ -369,7 +357,7 @@ if (roleId.value) await search()
 
     <!-- ── Generator CV ATS ─────────────────────────────────────────────── -->
     <section v-reveal class="relative z-10 mt-12">
-      <AtsCvBuilder :role-id="roleId" />
+      <AtsCvBuilder :role-id="roleId" :query="freeQuery" />
     </section>
 
     <!-- ── Jembatan ke langkah 5 ────────────────────────────────────────── -->
@@ -389,17 +377,7 @@ if (roleId.value) await search()
       </div>
       <BaseButton to="/gigs" class="shrink-0">
         Lihat penghasilan cepat
-        <svg
-          class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M4 10h12m-5-5 5 5-5 5" />
-        </svg>
+        <Icon name="lucide:arrow-right" class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
       </BaseButton>
     </div>
 

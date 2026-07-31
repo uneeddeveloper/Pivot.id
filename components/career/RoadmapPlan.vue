@@ -65,17 +65,7 @@ function searchLink(resource: { type: string; searchQuery: string }): string {
     <!-- ── Ringkasan & kemajuan ───────────────────────────────────────────── -->
     <BaseCard :title="roadmap.title" :subtitle="roadmap.intro">
       <template #icon>
-        <svg
-          class="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M3 5h14M3 10h14M3 15h9" />
-        </svg>
+        <Icon name="lucide:list" class="h-5 w-5" />
       </template>
 
       <div class="flex items-baseline justify-between gap-3">

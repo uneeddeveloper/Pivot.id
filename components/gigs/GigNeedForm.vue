@@ -47,18 +47,7 @@ const activePreset = computed(() =>
     subtitle="Dua angka ini yang menentukan urutan gig di bawah. Keduanya dihitung di perangkatmu."
   >
     <template #icon>
-      <svg
-        class="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="10" cy="10" r="7.5" />
-        <path d="M10 5.5V10l3 2" />
-      </svg>
+      <Icon name="lucide:clock" class="h-5 w-5" />
     </template>
 
     <div class="grid gap-5 sm:grid-cols-2">

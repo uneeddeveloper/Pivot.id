@@ -28,6 +28,44 @@ const draft = ref('')
 const sending = ref(false)
 const errorMessage = ref('')
 const missingInfo = ref<string[]>([])
+const attachedFile = ref<File | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+const isDragging = ref(false)
+
+function triggerFileSelect() {
+  fileInput.value?.click()
+}
+
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    attachedFile.value = target.files[0]
+  }
+}
+
+function clearFile() {
+  attachedFile.value = null
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+function handleDrop(event: DragEvent) {
+  isDragging.value = false
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0]
+    if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+      attachedFile.value = file
+    }
+  }
+}
+
+function handlePaste(event: ClipboardEvent) {
+  if (event.clipboardData?.files && event.clipboardData.files.length > 0) {
+    const file = event.clipboardData.files[0]
+    if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+      attachedFile.value = file
+    }
+  }
+}
 
 /** Keterampilan yang sudah tertangkap AI sejauh percakapan berjalan. */
 const detected = ref<string[]>([])
@@ -53,21 +91,37 @@ interface InterviewResponse {
 
 async function send() {
   const text = draft.value.trim()
-  if (!text || sending.value) return
+  if ((!text && !attachedFile.value) || sending.value) return
 
-  turns.value.push({ role: 'user', content: text })
+  const messageText = text || 'Berikut lampiran dokumen saya.'
+  turns.value.push({ role: 'user', content: messageText })
+  
+  const fileToSend = attachedFile.value
   draft.value = ''
+  clearFile()
+  
   sending.value = true
   errorMessage.value = ''
   await scrollToBottom()
 
   try {
-    const result = await $fetch<InterviewResponse>('/api/career/interview', {
-      method: 'POST',
-      // Pesan pembuka tidak ikut dikirim: itu teks kami sendiri, bukan bagian
-      // percakapan yang perlu dipertimbangkan model.
-      body: { messages: turns.value.slice(1) },
-    })
+    let result: InterviewResponse
+
+    if (fileToSend) {
+      const formData = new FormData()
+      formData.append('messages', JSON.stringify(turns.value.slice(1)))
+      formData.append('file', fileToSend)
+
+      result = await $fetch<InterviewResponse>('/api/career/interview', {
+        method: 'POST',
+        body: formData,
+      })
+    } else {
+      result = await $fetch<InterviewResponse>('/api/career/interview', {
+        method: 'POST',
+        body: { messages: turns.value.slice(1) },
+      })
+    }
 
     turns.value.push({ role: 'assistant', content: result.reply })
     detected.value = result.skills
@@ -120,17 +174,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
     subtitle="Tidak perlu istilah kerja yang formal. Pakai bahasamu sendiri — nanti kami yang menerjemahkannya jadi keterampilan yang dikenali pemberi kerja."
   >
     <template #icon>
-      <svg
-        class="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M17 9.5c0 3.3-3.1 6-7 6-.9 0-1.8-.15-2.6-.4L3 16.5l1.2-3.1A5.6 5.6 0 0 1 3 9.5c0-3.3 3.1-6 7-6s7 2.7 7 6Z" />
-      </svg>
+      <Icon name="lucide:message-square" class="h-5 w-5" />
     </template>
 
     <!-- ── Riwayat percakapan ─────────────────────────────────────────────── -->
@@ -163,39 +207,89 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
         <p
           class="flex items-center gap-2 rounded-2xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-4 py-2.5 text-sm text-ink-600 dark:text-ink-500"
         >
-          <svg
-            class="h-4 w-4 animate-spin"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <circle cx="10" cy="10" r="7" class="opacity-25" />
-            <path d="M17 10a7 7 0 0 0-7-7" stroke-linecap="round" />
-          </svg>
+          <Icon name="lucide:loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
           Sedang menyimak…
         </p>
       </div>
     </div>
 
     <!-- ── Kotak isian ────────────────────────────────────────────────────── -->
-    <div class="mt-4">
-      <label for="skill-chat-input" class="sr-only">Ceritakan kemampuanmu</label>
-      <textarea
-        id="skill-chat-input"
-        v-model="draft"
-        rows="3"
-        :disabled="sending"
-        placeholder="Mis. Saya lulusan SMA. Dua tahun bantu warung keluarga — catat stok, layani pembeli, kadang bikin promo di Facebook…"
-        class="field-input-dark resize-y leading-relaxed"
-        @keydown.enter.exact.prevent="send"
+    <div 
+      class="mt-4 relative rounded-xl border transition-colors duration-200"
+      :class="[
+        isDragging ? 'border-brand-500 bg-brand-50/50 dark:border-brand-400 dark:bg-brand-900/20' : 'border-ink-200 dark:border-white/[0.12] bg-white dark:bg-ink-900',
+        'focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:focus-within:border-brand-400 dark:focus-within:ring-brand-400/20'
+      ]"
+      @dragover.prevent="isDragging = true"
+      @dragleave.prevent="isDragging = false"
+      @drop.prevent="handleDrop"
+      @paste="handlePaste"
+    >
+      <input 
+        ref="fileInput"
+        type="file" 
+        accept=".pdf,image/png,image/jpeg,image/webp" 
+        class="hidden" 
+        @change="handleFileSelect" 
       />
-      <p class="mt-1.5 text-xs text-ink-600 dark:text-ink-500">
-        Tekan Enter untuk mengirim, Shift+Enter untuk baris baru. Punya CV? Boleh langsung
-        ditempel di sini.
-      </p>
+      
+      <!-- File Preview Pill -->
+      <div v-if="attachedFile" class="px-3 pt-3 flex items-center">
+        <div class="inline-flex items-center gap-2 rounded-lg bg-ink-50 dark:bg-white/[0.05] border border-ink-200 dark:border-white/[0.1] px-3 py-1.5 max-w-[80%]">
+          <Icon :name="attachedFile.type === 'application/pdf' ? 'lucide:file-text' : 'lucide:image'" class="h-4 w-4 shrink-0 text-brand-600 dark:text-brand-400" />
+          <span class="truncate text-sm font-medium text-ink-700 dark:text-cream-300">{{ attachedFile.name }}</span>
+          <button 
+            type="button" 
+            class="ml-1 rounded-md text-ink-400 hover:text-ink-700 dark:text-ink-500 dark:hover:text-cream-300 focus-ring dark:focus-ring-dark" 
+            @click="clearFile"
+            aria-label="Hapus file"
+          >
+            <Icon name="lucide:x" class="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-end">
+        <label for="skill-chat-input" class="sr-only">Ceritakan kemampuanmu</label>
+        <textarea
+          id="skill-chat-input"
+          v-model="draft"
+          rows="3"
+          :disabled="sending"
+          placeholder="Mis. Saya lulusan SMA. Punya CV? Tempel (paste) atau drag-and-drop di sini."
+          class="w-full resize-y bg-transparent p-3 text-sm leading-relaxed text-ink-900 placeholder:text-ink-400 focus:outline-none dark:text-cream-50 dark:placeholder:text-ink-500 disabled:opacity-50"
+          @keydown.enter.exact.prevent="send"
+        />
+        
+        <!-- Action Buttons inside input -->
+        <div class="p-2 pb-3 flex items-center gap-1">
+          <button 
+            type="button" 
+            class="rounded-lg p-2 text-ink-500 transition hover:bg-ink-100 hover:text-ink-700 dark:text-ink-400 dark:hover:bg-white/[0.07] dark:hover:text-cream-300 focus-ring dark:focus-ring-dark disabled:opacity-50"
+            :disabled="sending"
+            aria-label="Lampirkan File"
+            @click="triggerFileSelect"
+          >
+            <Icon name="lucide:paperclip" class="h-5 w-5" />
+          </button>
+          
+          <button 
+            type="button" 
+            class="rounded-lg p-2 transition focus-ring dark:focus-ring-dark disabled:opacity-50"
+            :class="draft.trim() || attachedFile ? 'bg-brand-600 text-white hover:bg-brand-700' : 'bg-ink-100 text-ink-400 dark:bg-white/[0.05] dark:text-ink-600'"
+            :disabled="(!draft.trim() && !attachedFile) || sending"
+            aria-label="Kirim"
+            @click="send"
+          >
+            <Icon name="lucide:send" class="h-5 w-5" />
+          </button>
+        </div>
+      </div>
     </div>
+    
+    <p class="mt-1.5 text-[11px] text-ink-600 dark:text-ink-500 text-center">
+      Tekan Enter untuk mengirim, Shift+Enter untuk baris baru. Dukung PDF & Gambar (Max 5MB).
+    </p>
 
     <p
       v-if="errorMessage"
@@ -232,9 +326,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
 
     <template #footer>
       <div class="flex flex-wrap items-center gap-3">
-        <BaseButton :disabled="!draft.trim() || sending" @click="send">
-          {{ sending ? 'Mengirim…' : 'Kirim' }}
-        </BaseButton>
+        <!-- Buttons in footer are removed because they are now inside the input -->
 
         <BaseButton v-if="canFinishEarly" variant="ghost" size="sm" @click="finishNow">
           Cukup, lihat hasilnya sekarang

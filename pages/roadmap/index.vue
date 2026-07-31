@@ -154,17 +154,7 @@ async function generate() {
         class="relative z-10 mt-8"
       >
         <template #icon>
-          <svg
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 16V9m4.5 7V4M12 16v-5m4.5 5V7" />
-          </svg>
+          <Icon name="lucide:bar-chart-3" class="h-5 w-5" />
         </template>
 
         <div class="flex flex-wrap gap-2">
@@ -188,7 +178,7 @@ async function generate() {
 
         <div class="mt-6 grid gap-4 sm:grid-cols-3">
           <FormField label="Peran yang dituju" field-id="rm-role" hint="Boleh dikosongkan.">
-            <select id="rm-role" v-model="roleId" class="field-input-dark">
+            <select id="rm-role" v-model="roleId" class="field-input">
               <option value="">— Belum ditentukan —</option>
               <option v-for="role in catalog.roles" :key="role.id" :value="role.id">
                 {{ role.title }}
@@ -197,7 +187,7 @@ async function generate() {
           </FormField>
 
           <FormField label="Waktu yang kamu punya" field-id="rm-days" hint="7–90 hari.">
-            <select id="rm-days" v-model.number="days" class="field-input-dark">
+            <select id="rm-days" v-model.number="days" class="field-input">
               <option :value="14">14 hari</option>
               <option :value="21">21 hari</option>
               <option :value="30">30 hari</option>
@@ -206,7 +196,7 @@ async function generate() {
           </FormField>
 
           <FormField label="Jam belajar per hari" field-id="rm-hours" hint="Isi yang realistis.">
-            <select id="rm-hours" v-model.number="hoursPerDay" class="field-input-dark">
+            <select id="rm-hours" v-model.number="hoursPerDay" class="field-input">
               <option :value="1">1 jam</option>
               <option :value="2">2 jam</option>
               <option :value="3">3 jam</option>
@@ -226,18 +216,7 @@ async function generate() {
         <template #footer>
           <div class="flex flex-wrap items-center gap-3">
             <BaseButton :disabled="!canGenerate" @click="generate">
-              <svg
-                v-if="generating"
-                class="h-4 w-4 animate-spin"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-              >
-                <circle cx="10" cy="10" r="7" class="opacity-25" />
-                <path d="M17 10a7 7 0 0 0-7-7" stroke-linecap="round" />
-              </svg>
+              <Icon v-if="generating" name="lucide:loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
               {{ generating ? 'Sedang disusun…' : roadmap ? 'Susun ulang' : 'Susun roadmap saya' }}
             </BaseButton>
             <p class="text-xs text-ink-600 dark:text-ink-400">

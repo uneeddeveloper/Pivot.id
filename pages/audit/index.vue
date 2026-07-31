@@ -69,17 +69,7 @@ function resetAll() {
               Hitung Target Income
             </BaseButton>
             <BaseButton type="button" variant="quiet" @click="resetAll">
-              <svg
-                class="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M4 6h12M8.5 6V4.5h3V6M6.5 6l.6 9h5.8l.6-9" />
-              </svg>
+              <Icon name="lucide:trash-2" class="h-4 w-4" />
               Hapus data saya
             </BaseButton>
             <p v-if="!canCalculate" class="w-full text-xs text-ink-600 dark:text-ink-400">
@@ -96,33 +86,12 @@ function resetAll() {
           <div v-if="financial.hasAudited && financial.simulation.feasible">
             <BaseButton to="/skill-gap" variant="secondary" block>
               Lanjut cari peran kerja yang cocok
-              <svg
-                class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M4 10h12m-5-5 5 5-5 5" />
-              </svg>
+              <Icon name="lucide:arrow-right" class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </BaseButton>
           </div>
 
           <p class="flex items-start gap-2 px-1 text-xs leading-relaxed text-ink-600 dark:text-ink-400">
-            <svg
-              class="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-500 dark:text-ink-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.25 9a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-1.5 0V9Z"
-                clip-rule="evenodd"
-              />
-            </svg>
+            <Icon name="lucide:info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-500 dark:text-ink-400" aria-hidden="true" />
             Angka di kartu ini ikut berubah otomatis setiap kali kamu mengubah isian di sebelah kiri.
           </p>
         </aside>

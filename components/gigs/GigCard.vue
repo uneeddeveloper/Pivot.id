@@ -85,13 +85,7 @@ function searchLink(query: string): string {
         v-if="gig.startupCost === 0"
         class="flex shrink-0 items-center gap-1.5 rounded-full border border-sage-300 dark:border-sage-500/40 bg-sage-50 dark:bg-sage-900/60 px-2.5 py-1 text-xs font-medium text-sage-700 dark:text-sage-300"
       >
-        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path
-            fill-rule="evenodd"
-            d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <Icon name="lucide:check" class="h-3.5 w-3.5" aria-hidden="true" />
         Tanpa modal
       </span>
       <span
@@ -188,18 +182,7 @@ function searchLink(query: string): string {
       <summary
         class="focus-ring dark:focus-ring-dark flex cursor-pointer list-none items-center gap-1.5 rounded-lg text-sm font-medium text-brand-600 dark:text-brand-400 transition hover:text-brand-700 dark:hover:text-brand-300"
       >
-        <svg
-          class="h-4 w-4 transition-transform duration-200 group-open/detail:rotate-90"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M7 4l6 6-6 6" />
-        </svg>
+        <Icon name="lucide:chevron-right" class="h-4 w-4 transition-transform duration-200 group-open/detail:rotate-90" aria-hidden="true" />
         Cara mulai & tempat mencarinya
       </summary>
 
@@ -219,14 +202,12 @@ function searchLink(query: string): string {
                 rel="noopener noreferrer nofollow"
                 class="focus-ring dark:focus-ring-dark group/link inline-flex items-center gap-2 rounded-lg text-sm text-ink-600 dark:text-ink-400 transition hover:text-brand-600 dark:hover:text-brand-400"
               >
-                <svg
+                <Icon :name="`lucide:${channel.kind}`" fallback="lucide:globe" 
                   class="h-4 w-4 shrink-0 text-ink-400 dark:text-ink-600 transition group-hover/link:text-brand-600 dark:group-hover/link:text-brand-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+                  
+                  
                   aria-hidden="true"
-                >
-                  <path :d="channelIcons[channel.kind] ?? channelIcons.platform" />
-                </svg>
+                 />
                 {{ channel.name }}
                 <span class="text-[11px] text-ink-400 dark:text-ink-600 group-hover/link:text-brand-600 dark:group-hover/link:text-brand-400">
                   cari →

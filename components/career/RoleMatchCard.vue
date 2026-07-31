@@ -45,26 +45,8 @@ const badges = computed(() => {
             : 'border-ink-200 dark:border-white/[0.1] bg-white dark:bg-ink-700/80 text-ink-600 dark:text-ink-300'
         "
       >
-        <svg
-          v-if="match.meetsTarget"
-          class="h-3.5 w-3.5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <svg v-else class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path
-            fill-rule="evenodd"
-            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.25 9a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-1.5 0V9Z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <Icon name="lucide:check" v-if="match.meetsTarget" class="h-3.5 w-3.5" aria-hidden="true" />
+        <Icon name="lucide:info" v-else class="h-3.5 w-3.5" aria-hidden="true" />
         {{ match.meetsTarget ? 'Menutup target' : 'Batu loncatan' }}
       </span>
     </div>

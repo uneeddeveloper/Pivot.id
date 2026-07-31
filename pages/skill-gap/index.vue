@@ -215,18 +215,7 @@ function restartChat() {
       <div class="mt-6 flex flex-wrap items-center gap-3">
         <BaseButton :disabled="!career.hasSkills" @click="confirmSkills">
           Sudah benar, carikan pekerjaannya
-          <svg
-            class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M4 10h12m-5-5 5 5-5 5" />
-          </svg>
+          <Icon name="lucide:arrow-right" class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" aria-hidden="true" />
         </BaseButton>
 
         <BaseButton variant="ghost" size="sm" @click="restartChat">
@@ -317,18 +306,7 @@ function restartChat() {
       >
         <MascotFigure pose="sip" size="xs" class="hidden sm:block" />
         <div class="flex min-w-0 items-start gap-3">
-          <svg
-            class="mt-0.5 h-5 w-5 shrink-0 text-sage-600 dark:text-sage-500 sm:hidden"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.7-9.3a1 1 0 0 0-1.4-1.4L9 10.58 7.7 9.3a1 1 0 0 0-1.4 1.4l2 2a1 1 0 0 0 1.4 0l4-4Z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <Icon name="lucide:check-circle" class="mt-0.5 h-5 w-5 shrink-0 text-sage-600 dark:text-sage-500 sm:hidden" aria-hidden="true" />
           <p class="text-sm leading-relaxed text-sage-700 dark:text-sage-300">
             <strong class="font-semibold text-sage-900 dark:text-sage-100">
               {{ readyNow.length }} peran bisa kamu lamar sekarang juga
@@ -369,17 +347,7 @@ function restartChat() {
         subtitle="Dihitung dari peran-peran yang gajinya menutup Target Income-mu tapi syaratnya belum terpenuhi. Inilah daftar yang akan disusun jadi roadmap belajar di langkah berikutnya."
       >
         <template #icon>
-          <svg
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 16V9m4.5 7V4M12 16v-5m4.5 5V7" />
-          </svg>
+          <Icon name="lucide:bar-chart-3" class="h-5 w-5 text-ink-900 dark:text-cream-50" />
         </template>
 
         <ol class="space-y-2.5">
@@ -410,17 +378,7 @@ function restartChat() {
             </p>
             <BaseButton to="/roadmap" variant="secondary" class="shrink-0">
               Susun roadmap belajarnya
-              <svg
-                class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M4 10h12m-5-5 5 5-5 5" />
-              </svg>
+              <Icon name="lucide:arrow-right" class="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </BaseButton>
           </div>
         </template>

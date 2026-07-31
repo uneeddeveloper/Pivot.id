@@ -266,13 +266,7 @@ function resetFilters() {
         class="relative z-10 mt-6 rounded-2xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-5 py-4 text-sm leading-relaxed text-amber-700 dark:text-amber-200/90"
       >
         <p class="flex items-center gap-2 font-semibold">
-          <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path
-              fill-rule="evenodd"
-              d="M8.5 2.7a1.7 1.7 0 0 1 3 0l6 10.6c.65 1.15-.18 2.6-1.5 2.6H4a1.7 1.7 0 0 1-1.5-2.6l6-10.6ZM10 7a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3A.75.75 0 0 1 10 7Zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <Icon name="lucide:triangle-alert" class="h-4 w-4 shrink-0" aria-hidden="true" />
           Satu aturan yang tidak ada pengecualiannya
         </p>
         <p class="mt-1.5 text-amber-600 dark:text-amber-200/70">

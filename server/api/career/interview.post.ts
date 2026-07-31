@@ -1,6 +1,9 @@
 import { z } from 'zod'
 import { keepKnownSkillIds } from '../../../shared/skills'
 import { chatJson, isLlmConfigured, LlmUnavailableError } from '../../utils/llm'
+import * as _pdf from 'pdf-parse'
+const pdf = (_pdf as any).default || _pdf
+import type { ChatMessage } from '../../utils/llm'
 
 /**
  * POST /api/career/interview
@@ -98,7 +101,57 @@ Kalau user bilang tidak punya keahlian, jangan setujui — gali kegiatan hariann
 Balas HANYA JSON sesuai skema.`
 
 export default defineEventHandler(async (event) => {
-  const body = BodySchema.parse(await readBody(event))
+  const contentType = getHeader(event, 'content-type') || ''
+  const isMultipart = contentType.includes('multipart/form-data')
+
+  let parsedMessages: any[]
+  let fileBuffer: Buffer | undefined
+  let fileType: string | undefined
+
+  if (isMultipart) {
+    const formData = await readMultipartFormData(event)
+    if (!formData) throw createError({ statusCode: 400, message: 'Invalid form data' })
+
+    const messagesField = formData.find(f => f.name === 'messages')
+    if (!messagesField) throw createError({ statusCode: 400, message: 'Missing messages' })
+    
+    parsedMessages = JSON.parse(messagesField.data.toString())
+    
+    const fileField = formData.find(f => f.name === 'file')
+    if (fileField) {
+      fileBuffer = fileField.data
+      fileType = fileField.type
+    }
+  } else {
+    const rawBody = await readBody(event)
+    parsedMessages = rawBody.messages
+  }
+
+  const body = BodySchema.parse({ messages: parsedMessages })
+  let finalMessages: ChatMessage[] = body.messages as ChatMessage[]
+
+  // Handle file extraction or vision payload modification
+  if (fileBuffer && fileType && finalMessages.length > 0) {
+    const lastUserMessage = finalMessages[finalMessages.length - 1]
+    
+    if (fileType === 'application/pdf') {
+      try {
+        const data = await pdf(fileBuffer)
+        lastUserMessage.content = `${lastUserMessage.content}\n\n[Isi Lampiran CV/Dokumen]:\n${data.text}`
+      } catch (err) {
+        throw createError({ statusCode: 400, message: 'Gagal membaca PDF. Pastikan file valid.' })
+      }
+    } else if (fileType.startsWith('image/')) {
+      const base64Data = fileBuffer.toString('base64')
+      const imageUrl = `data:${fileType};base64,${base64Data}`
+      
+      const textContent = lastUserMessage.content as string
+      lastUserMessage.content = [
+        { type: 'text', text: `${textContent}\n\n[Berikut adalah lampiran dokumen/CV dalam bentuk gambar]` },
+        { type: 'image_url', image_url: { url: imageUrl } }
+      ]
+    }
+  }
 
   if (!isLlmConfigured()) {
     throw createError({
@@ -124,7 +177,7 @@ export default defineEventHandler(async (event) => {
     const result = await chatJson(
       [
         { role: 'system', content: `${SYSTEM_PROMPT}\n\nKATALOG KETERAMPILAN:\n${catalog}` },
-        ...body.messages,
+        ...finalMessages,
       ],
       InterviewSchema,
       {

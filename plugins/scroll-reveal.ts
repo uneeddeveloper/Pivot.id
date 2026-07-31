@@ -16,6 +16,11 @@ export default defineNuxtPlugin((nuxtApp) => {
       })
       
       observer.observe(el)
+    },
+    getSSRProps() {
+      return {
+        class: 'reveal-up'
+      }
     }
   })
 })
