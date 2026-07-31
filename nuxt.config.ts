@@ -43,7 +43,9 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['~/assets/css/main.css'],
+  // Urutan penting: CSS bawaan SweetAlert harus lebih dulu supaya blok
+  // ".pivot-swal" di main.css bisa menimpanya tanpa !important.
+  css: ['sweetalert2/dist/sweetalert2.min.css', '~/assets/css/main.css'],
 
   /**
    * Kunci di luar `public` HANYA terbaca di sisi server (server/**). Token

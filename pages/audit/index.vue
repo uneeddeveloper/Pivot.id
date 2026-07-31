@@ -5,6 +5,7 @@ import { useFinancialStore } from '~/stores/financial'
 useHead({ title: 'Audit Pemulihan Finansial — Pivot' })
 
 const financial = useFinancialStore()
+const { confirmAction, toastSuccess } = useAlert()
 
 const canCalculate = computed(() => financial.isReady)
 
@@ -14,8 +15,22 @@ async function submitAudit() {
   document.getElementById('simulasi')?.scrollIntoView({ block: 'start' })
 }
 
-function resetAll() {
+/**
+ * Menghapus seluruh isian audit. Tidak bisa dibatalkan — datanya memang tidak
+ * pernah dikirim ke server, jadi tidak ada salinan yang bisa dipulihkan.
+ */
+async function resetAll() {
+  const confirmed = await confirmAction({
+    title: 'Hapus semua data audit?',
+    text: 'Biaya hidup dan daftar utang yang sudah kamu isi akan dikosongkan. Data ini hanya ada di perangkatmu, jadi tidak bisa dikembalikan lagi.',
+    confirmText: 'Ya, hapus',
+    cancelText: 'Batal',
+    destructive: true,
+  })
+  if (!confirmed) return
+
   financial.reset()
+  toastSuccess('Data audit sudah dihapus dari perangkat ini.')
 }
 </script>
 

@@ -679,6 +679,249 @@
   }
 }
 
+/*
+ * ─── SweetAlert2 ─────────────────────────────────────────────────────────
+ *
+ * Tampilan bawaan SweetAlert (sudut tajam, tombol biru, font sistem) tidak
+ * nyambung dengan palet krem/brand. Blok ini menyetelnya ulang.
+ *
+ * Sebagian besar lewat custom property `--swal2-*` milik SweetAlert sendiri —
+ * cara paling aman karena tidak perlu adu specificity. Sisanya (ikon, tombol,
+ * toast) pakai kelas `.pivot-swal*` yang dipasang dari composables/useAlert.ts;
+ * CSS SweetAlert dimuat lebih dulu di nuxt.config.ts sehingga aturan di sini
+ * selalu menang tanpa !important.
+ *
+ * Popup dirender sebagai anak <body>, sehingga `.dark` di <html> tetap jadi
+ * leluhurnya — varian gelap cukup ditulis dengan selektor `.dark ...`.
+ */
+:root {
+  --swal2-backdrop: rgb(26 23 18 / 0.55);
+  --swal2-width: 30rem;
+  --swal2-padding: 1.75rem;
+  --swal2-border: 1px solid var(--color-ink-200);
+  --swal2-border-radius: 1.25rem;
+  --swal2-background: var(--color-cream-50);
+  --swal2-color: var(--color-ink-900);
+  --swal2-title-padding: 0;
+  --swal2-html-container-padding: 0.6rem 0 0;
+  --swal2-actions-margin: 1.5rem auto 0;
+  --swal2-outline: 0 0 0 3px rgb(200 52 28 / 0.4);
+  --swal2-timer-progress-bar-background: var(--color-brand-500);
+  --swal2-toast-border: 1px solid var(--color-ink-200);
+  --swal2-toast-box-shadow: var(--shadow-lift);
+}
+
+html.dark {
+  --swal2-border: 1px solid rgb(255 255 255 / 0.08);
+  --swal2-background: var(--color-ink-900);
+  --swal2-color: var(--color-cream-100);
+  --swal2-toast-border: 1px solid rgb(255 255 255 / 0.08);
+  --swal2-toast-box-shadow: var(--shadow-dark-lift);
+}
+
+/* Blur hanya untuk dialog; toast tidak boleh mengaburkan halaman di belakangnya. */
+body:not(.swal2-toast-shown) .swal2-container.pivot-swal-container {
+  backdrop-filter: blur(4px);
+}
+
+.swal2-popup.pivot-swal {
+  max-width: calc(100vw - 2rem);
+  box-shadow: var(--shadow-lift);
+  font-family: var(--font-sans);
+}
+
+.dark .swal2-popup.pivot-swal {
+  box-shadow: var(--shadow-dark-lift);
+}
+
+.pivot-swal .pivot-swal__title {
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--color-ink-900);
+}
+
+.dark .pivot-swal .pivot-swal__title {
+  color: var(--color-cream-50);
+}
+
+.pivot-swal .pivot-swal__text {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--color-ink-600);
+}
+
+.dark .pivot-swal .pivot-swal__text {
+  color: var(--color-ink-400);
+}
+
+/*
+ * Ikon bawaan memakai merah/kuning/hijau standar. Digeser ke palet sendiri:
+ * sage untuk kabar baik, cream untuk peringatan, brand untuk kegagalan.
+ */
+.pivot-swal .pivot-swal__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1.1rem;
+  border-width: 3px;
+}
+
+.pivot-swal .pivot-swal__icon .swal2-icon-content {
+  font-size: 2rem;
+}
+
+.pivot-swal .swal2-icon.swal2-success {
+  border-color: var(--color-sage-400);
+  color: var(--color-sage-600);
+}
+
+.pivot-swal .swal2-icon.swal2-success [class^='swal2-success-line'] {
+  background-color: var(--color-sage-500);
+}
+
+.pivot-swal .swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgb(141 166 92 / 0.35);
+}
+
+.pivot-swal .swal2-icon.swal2-warning {
+  border-color: var(--color-cream-500);
+  color: var(--color-cream-700);
+}
+
+.dark .pivot-swal .swal2-icon.swal2-warning {
+  color: var(--color-cream-400);
+}
+
+.pivot-swal .swal2-icon.swal2-error {
+  border-color: var(--color-brand-400);
+  color: var(--color-brand-600);
+}
+
+.pivot-swal .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+  background-color: var(--color-brand-600);
+}
+
+.dark .pivot-swal .swal2-icon.swal2-error {
+  color: var(--color-brand-300);
+}
+
+.pivot-swal .swal2-icon.swal2-question,
+.pivot-swal .swal2-icon.swal2-info {
+  border-color: var(--color-ink-300);
+  color: var(--color-ink-600);
+}
+
+.dark .pivot-swal .swal2-icon.swal2-question,
+.dark .pivot-swal .swal2-icon.swal2-info {
+  border-color: rgb(255 255 255 / 0.16);
+  color: var(--color-ink-300);
+}
+
+/* ── Tombol (buttonsStyling: false, jadi seluruh tampilannya dari sini) ── */
+.pivot-swal .pivot-swal__actions {
+  margin: 1.5rem 0 0;
+  gap: 0.6rem;
+}
+
+.pivot-swal .pivot-swal__btn {
+  margin: 0;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pivot-swal .pivot-swal__btn:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+.pivot-swal .pivot-swal__btn--primary {
+  border: 1px solid transparent;
+  background: var(--color-brand-600);
+  color: var(--color-cream-50);
+  box-shadow: var(--shadow-brand);
+}
+
+.pivot-swal .pivot-swal__btn--primary:hover {
+  background: var(--color-brand-700);
+  transform: translateY(-1px);
+}
+
+.pivot-swal .pivot-swal__btn--quiet {
+  border: 1px solid var(--color-ink-200);
+  background: transparent;
+  color: var(--color-ink-600);
+}
+
+.pivot-swal .pivot-swal__btn--quiet:hover {
+  border-color: var(--color-ink-300);
+  background: rgb(255 255 255 / 0.6);
+  color: var(--color-ink-900);
+}
+
+.dark .pivot-swal .pivot-swal__btn--quiet {
+  border-color: rgb(255 255 255 / 0.12);
+  color: var(--color-ink-300);
+}
+
+.dark .pivot-swal .pivot-swal__btn--quiet:hover {
+  border-color: rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.06);
+  color: var(--color-cream-50);
+}
+
+/* ── Toast pojok kanan atas ─────────────────────────────────────────────── */
+.swal2-popup.pivot-swal.pivot-toast {
+  width: auto;
+  max-width: 22rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lift);
+}
+
+.dark .swal2-popup.pivot-swal.pivot-toast {
+  box-shadow: var(--shadow-dark-soft);
+}
+
+.pivot-toast .pivot-toast__title {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-ink-900);
+}
+
+.dark .pivot-toast .pivot-toast__title {
+  color: var(--color-cream-100);
+}
+
+.pivot-toast .pivot-swal__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  margin: 0 0.65rem 0 0;
+  border-width: 2px;
+}
+
+.pivot-toast .pivot-toast__timer {
+  background: var(--color-brand-500);
+}
+
 /* Hormati preferensi sistem — animasi dekoratif dimatikan total. */
 @media (prefers-reduced-motion: reduce) {
   html {
