@@ -222,9 +222,11 @@ export async function saveSearch(
     // ikut terbawa di pencarian berikutnya.
     await tx.jobSearchResult.deleteMany({ where: { searchId } })
 
+    /** Pasangan job↔skill dikumpulkan dulu, ditulis sekali di akhir. */
+    const jobIds: bigint[] = []
+    const skillLinks: { jobId: bigint; skillId: string }[] = []
+
     for (const [position, job] of jobs.entries()) {
-      // upsertJob masih pakai prisma (bukan tx) karena tidak ada nested tx di MySQL.
-      // Bisa juga diubah ke tx.job.upsert() — Prisma mendukungnya.
       const jobId = await tx.job.upsert({
         where: { externalId: job.externalId },
         create: {
@@ -276,16 +278,32 @@ export async function saveSearch(
         update: { position },
       })
 
-      // Hapus skill lama lalu insert ulang (sama seperti sebelumnya)
-      await tx.jobSkill.deleteMany({ where: { jobId: jobId.id } })
-      if (job.skills.length > 0) {
-        await tx.jobSkill.createMany({
-          data: job.skills.map((skillId) => ({ jobId: jobId.id, skillId })),
-          skipDuplicates: true,
-        })
+      jobIds.push(jobId.id)
+      for (const skillId of job.skills) {
+        skillLinks.push({ jobId: jobId.id, skillId })
       }
     }
 
+    // Dulu tiap lowongan menghabiskan dua perjalanan sendiri untuk hapus+isi
+    // ulang skill-nya. Digabung jadi dua perjalanan untuk seluruh batch.
+    if (jobIds.length > 0) {
+      await tx.jobSkill.deleteMany({ where: { jobId: { in: jobIds } } })
+    }
+    if (skillLinks.length > 0) {
+      await tx.jobSkill.createMany({ data: skillLinks, skipDuplicates: true })
+    }
+
     return Number(searchId)
+  },
+  {
+    /**
+     * Batas bawaan Prisma 5 detik terlalu pendek di sini: databasenya TiDB
+     * Cloud di Singapura, dan satu batch bisa berisi puluhan lowongan yang
+     * masing-masing masih butuh giliran upsert sendiri. Lewat 5 detik,
+     * transaksinya ditutup dan query berikutnya jatuh dengan "Transaction not
+     * found" — yang muncul di browser sebagai 500 di /api/jobs/search.
+     */
+    timeout: 30_000,
+    maxWait: 10_000,
   })
 }

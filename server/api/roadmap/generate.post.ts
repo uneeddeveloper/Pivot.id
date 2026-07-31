@@ -150,6 +150,13 @@ export default defineEventHandler(async (event) => {
 
     return { roadmap, meta: { days: body.days, hoursPerDay: body.hoursPerDay, roleTitle: role?.title ?? '' } }
   } catch (error) {
+    // Tanpa baris ini penyebabnya hilang: `chat()` hanya mencatat http_error,
+    // sedangkan timeout dan bad_output diam-diam jatuh jadi 503 polos.
+    console.error(
+      '[roadmap] gagal:',
+      error instanceof LlmUnavailableError ? `${error.reason} — ${error.message}` : error,
+    )
+
     throw createError({
       statusCode: 503,
       statusMessage: 'Roadmap gagal disusun',
