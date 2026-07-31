@@ -97,19 +97,28 @@ if (roleId.value) await search()
 </script>
 
 <template>
-  <div class="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
-    <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72">
-      <div class="aurora-blob -top-28 right-4 h-72 w-72 animate-float bg-cream-300/40" />
-      <div class="aurora-blob -top-20 -left-16 h-64 w-64 bg-sage-200/40" />
-    </div>
+  <div class="surface-dark min-h-screen">
+    <!-- Halaman alur: mengikuti dark theme -->
+    <div class="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      <!-- Ambient glow dekorasi -->
+      <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-0 overflow-hidden">
+        <div
+          class="absolute -top-20 right-0 h-64 w-64 rounded-full opacity-[0.15] blur-3xl"
+          style="background: radial-gradient(circle, rgb(247 230 127 / 0.5) 0%, transparent 70%)"
+        />
+        <div
+          class="absolute top-1/3 -left-16 h-48 w-48 rounded-full opacity-[0.08] blur-3xl"
+          style="background: radial-gradient(circle, rgb(169 14 2 / 0.7) 0%, transparent 70%)"
+        />
+      </div>
 
-    <header class="animate-rise flex items-start justify-between gap-6">
+    <header v-reveal class="relative z-10 flex items-start justify-between gap-6">
       <div class="max-w-2xl">
         <StepProgress :current="4" class="max-w-md" />
-        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 dark:text-cream-50 sm:text-4xl">
           Lowongan & CV ATS
         </h1>
-        <p class="mt-3 text-sm leading-relaxed text-ink-600 sm:text-base">
+        <p class="mt-3 text-sm leading-relaxed text-ink-600 dark:text-ink-400 sm:text-base">
           Lowongan asli dari Google Jobs, disaring dengan ambang gaji yang sudah kamu hitung
           sendiri. Yang terindikasi menipu kami tandai — bukan kami sembunyikan diam-diam.
         </p>
@@ -120,29 +129,30 @@ if (roleId.value) await search()
 
     <!-- ── Jangkar Target Income ────────────────────────────────────────── -->
     <div
+      v-reveal
       v-if="targetIncome > 0"
-      class="surface-brand mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-700/60 px-5 py-4 text-cream-100"
+      class="surface-brand relative z-10 mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-200 dark:border-brand-700/60 px-5 py-4 text-brand-900 dark:text-cream-100"
     >
       <div>
-        <p class="text-xs font-medium tracking-wide text-cream-100/75 uppercase">
+        <p class="text-[10px] font-semibold tracking-[0.14em] text-brand-700 dark:text-cream-100/75 uppercase">
           Ambang gaji yang kita pakai
         </p>
-        <p class="mt-1 text-2xl font-bold tabular-nums text-cream-50">
+        <p class="mt-1 text-2xl font-bold tabular-nums text-brand-900 dark:text-cream-50">
           {{ formatIDR(targetIncome) }}
-          <span class="text-sm font-normal text-cream-100/70">/ bulan</span>
+          <span class="text-sm font-normal text-brand-700 dark:text-cream-100/70">/ bulan</span>
         </p>
       </div>
-      <p class="max-w-xs text-sm leading-relaxed text-cream-100/85">
+      <p class="max-w-xs text-sm leading-relaxed text-brand-800 dark:text-cream-100/85">
         Angka ini dihitung di perangkatmu dan dikirim ke pencarian sebagai satu angka saja —
         rincian utangmu tidak ikut.
       </p>
     </div>
 
-    <BaseCard v-else tone="soft" class="mt-8">
+    <BaseCard v-reveal v-else tone="soft" class="relative z-10 mt-8">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="min-w-0">
-          <p class="font-semibold text-ink-900">Target Income-mu belum dihitung</p>
-          <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600">
+          <p class="font-semibold text-ink-900 dark:text-cream-50">Target Income-mu belum dihitung</p>
+          <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600 dark:text-ink-400">
             Pencarian tetap jalan tanpa itu. Tapi begitu Target Income terisi, kami bisa menandai
             lowongan mana yang gajinya benar-benar menutup kebutuhanmu.
           </p>
@@ -152,7 +162,7 @@ if (roleId.value) await search()
     </BaseCard>
 
     <!-- ── Kontrol pencarian ────────────────────────────────────────────── -->
-    <BaseCard title="Cari lowongan" class="mt-8">
+    <BaseCard v-reveal title="Cari lowongan" class="relative z-10 mt-8">
       <template #icon>
         <svg
           class="h-5 w-5"
@@ -174,7 +184,7 @@ if (roleId.value) await search()
           field-id="job-role"
           hint="Dari katalog peran di langkah 2."
         >
-          <select id="job-role" v-model="roleId" class="field-input">
+          <select id="job-role" v-model="roleId" class="field-input-dark">
             <option value="">— Ketik kata kunci sendiri —</option>
             <option v-for="role in catalog.roles" :key="role.id" :value="role.id">
               {{ role.title }}
@@ -192,7 +202,7 @@ if (roleId.value) await search()
             id="job-query"
             v-model="freeQuery"
             type="text"
-            class="field-input"
+            class="field-input-dark"
             placeholder="Ketik posisi yang kamu cari"
             @keyup.enter="search()"
           />
@@ -207,7 +217,7 @@ if (roleId.value) await search()
             id="job-location"
             v-model="location"
             type="text"
-            class="field-input"
+            class="field-input-dark"
             placeholder="Jakarta, Bandung, Surabaya…"
             @keyup.enter="search()"
           />
@@ -215,12 +225,12 @@ if (roleId.value) await search()
 
         <div class="flex items-end">
           <label
-            class="flex cursor-pointer items-center gap-2 rounded-xl border border-ink-200 bg-white/60 px-3 py-2.5 text-sm text-ink-600"
+            class="flex cursor-pointer items-center gap-2 rounded-xl border border-ink-200/50 dark:border-white/[0.08] bg-white/80 dark:bg-ink-800/80 px-3 py-2.5 text-sm text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] transition"
           >
             <input
               v-model="remoteOnly"
               type="checkbox"
-              class="focus-ring h-4 w-4 rounded border-ink-300 accent-brand-600"
+              class="focus-ring dark:focus-ring-dark h-4 w-4 rounded border-ink-300 dark:border-ink-600 bg-white dark:bg-ink-900 accent-brand-600"
             />
             Hanya yang bisa dikerjakan dari rumah
           </label>
@@ -255,7 +265,7 @@ if (roleId.value) await search()
             Ambil data terbaru
           </BaseButton>
 
-          <p v-if="fetchedLabel" class="text-xs text-ink-400">
+          <p v-if="fetchedLabel" class="text-xs text-ink-600 dark:text-ink-400">
             {{ meta?.cached ? 'Tersimpan sejak' : 'Diambil' }} {{ fetchedLabel }}
             <span v-if="meta?.provider"> · {{ meta.provider }}</span>
           </p>
@@ -266,7 +276,7 @@ if (roleId.value) await search()
     <!-- ── Pesan sistem ─────────────────────────────────────────────────── -->
     <div
       v-if="errorMessage"
-      class="mt-4 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 text-sm leading-relaxed text-brand-800"
+      class="relative z-10 mt-4 rounded-2xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-5 py-4 text-sm leading-relaxed text-amber-700 dark:text-amber-200/90"
     >
       {{ errorMessage }}
     </div>
@@ -274,19 +284,32 @@ if (roleId.value) await search()
     <div
       v-for="warning in meta?.warnings ?? []"
       :key="warning"
-      class="mt-4 rounded-2xl border border-cream-400 bg-cream-100 px-5 py-3 text-sm leading-relaxed text-ink-700"
+      class="relative z-10 mt-4 rounded-2xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-5 py-3 text-sm leading-relaxed text-amber-700 dark:text-amber-100"
     >
       {{ warning }}
     </div>
 
+    <!-- ── Loading State ────────────────────────────────────────────────── -->
+    <section v-reveal v-if="searching" class="relative z-10 mt-8">
+      <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+        <div>
+          <div class="h-8 w-64 rounded-lg bg-ink-200/50 dark:bg-white/[0.05] animate-pulse"></div>
+          <div class="mt-2 h-4 w-96 max-w-full rounded-md bg-ink-200/50 dark:bg-white/[0.05] animate-pulse"></div>
+        </div>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-2">
+        <SkeletonCard v-for="i in 4" :key="i" />
+      </div>
+    </section>
+
     <!-- ── Hasil ────────────────────────────────────────────────────────── -->
-    <section v-if="result" class="mt-8">
+    <section v-reveal v-else-if="result" class="relative z-10 mt-8">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-bold tracking-tight text-ink-900">
+          <h2 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-cream-50">
             {{ matches.length }} lowongan ditemukan
           </h2>
-          <p class="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-500">
+          <p class="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-600 dark:text-ink-400">
             Diurutkan dari yang paling dekat dengan kondisimu: menutup Target Income lebih dulu,
             lalu yang keterampilannya paling banyak sudah kamu punya.
           </p>
@@ -294,12 +317,12 @@ if (roleId.value) await search()
 
         <label
           v-if="belowTargetCount > 0 && targetIncome > 0"
-          class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200 bg-white/60 px-3 py-1.5 text-xs text-ink-600"
+          class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200/50 dark:border-white/[0.08] bg-white/80 dark:bg-ink-800/80 px-3 py-1.5 text-xs text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] transition"
         >
           <input
             v-model="hideBelowTarget"
             type="checkbox"
-            class="focus-ring h-3.5 w-3.5 rounded border-ink-300 accent-brand-600"
+            class="focus-ring dark:focus-ring-dark h-3.5 w-3.5 rounded border-ink-300 dark:border-ink-600 bg-white dark:bg-ink-900 accent-brand-600"
           />
           Sembunyikan {{ belowTargetCount }} yang di bawah target
         </label>
@@ -307,7 +330,7 @@ if (roleId.value) await search()
 
       <p
         v-if="meta && meta.hiddenByValidation > 0"
-        class="mt-3 text-xs leading-relaxed text-ink-500"
+        class="mt-3 text-xs leading-relaxed text-ink-600 dark:text-ink-500"
       >
         {{ meta.hiddenByValidation }} lowongan tidak ditampilkan karena terlalu banyak tanda bahaya
         (meminta biaya di muka, perusahaan tidak jelas, atau pola serupa).
@@ -315,15 +338,17 @@ if (roleId.value) await search()
 
       <div v-if="visibleMatches.length" class="mt-5 grid gap-4 lg:grid-cols-2">
         <JobCard
-          v-for="match in visibleMatches"
+          v-for="(match, i) in visibleMatches"
           :key="match.job.id"
+          class="stagger-item"
+          :style="{ animationDelay: `${i * 0.1}s` }"
           :match="match"
           :target-income="targetIncome"
         />
       </div>
 
-      <BaseCard v-else tone="soft" class="mt-5">
-        <p class="text-sm leading-relaxed text-ink-600">
+      <BaseCard v-else tone="soft" class="mt-5 border border-ink-200/50 dark:border-white/[0.08] border-dashed">
+        <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">
           Tidak ada lowongan yang cocok kali ini. Coba longgarkan lokasinya, matikan filter remote,
           atau pakai kata kunci yang lebih umum. Tidak ketemu hari ini bukan berarti tidak ada —
           papan lowongan berganti isi hampir tiap hari.
@@ -331,31 +356,32 @@ if (roleId.value) await search()
       </BaseCard>
     </section>
 
-    <BaseCard v-else-if="!searching" tone="soft" class="mt-8">
+    <BaseCard v-reveal v-else tone="soft" class="relative z-10 mt-8">
       <div class="flex items-center gap-4">
         <MascotFigure pose="tidur" size="sm" class="hidden sm:block" />
-        <p class="text-sm leading-relaxed text-ink-600">
+        <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">
           Pilih peran atau ketik kata kunci di atas, lalu tekan
-          <strong class="font-semibold">Cari lowongan</strong>. Hasilnya diambil dari Google Jobs
+          <strong class="font-semibold text-ink-900 dark:text-cream-50">Cari lowongan</strong>. Hasilnya diambil dari Google Jobs
           dan disaring dengan Target Income-mu.
         </p>
       </div>
     </BaseCard>
 
     <!-- ── Generator CV ATS ─────────────────────────────────────────────── -->
-    <section class="mt-12">
+    <section v-reveal class="relative z-10 mt-12">
       <AtsCvBuilder :role-id="roleId" />
     </section>
 
     <!-- ── Jembatan ke langkah 5 ────────────────────────────────────────── -->
     <div
-      class="surface-card mt-12 flex flex-col items-start gap-4 rounded-2xl border border-cream-300 p-6 sm:flex-row sm:items-center sm:justify-between"
+      v-reveal
+      class="relative z-10 mt-12 flex flex-col items-start gap-4 rounded-[1.25rem] border border-ink-200/50 dark:border-white/[0.07] bg-white/40 dark:bg-ink-800 p-6 sm:flex-row sm:items-center sm:justify-between transition hover:border-ink-300 dark:hover:border-white/[0.12]"
     >
       <div class="flex items-center gap-4">
         <MascotFigure pose="lari" size="sm" class="hidden sm:block" />
         <div class="min-w-0">
-          <p class="font-semibold text-ink-900">Sambil menunggu lamaran dijawab</p>
-          <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-500">
+          <p class="font-semibold text-ink-900 dark:text-cream-50">Sambil menunggu lamaran dijawab</p>
+          <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600 dark:text-ink-400">
             Balasan lamaran biasanya butuh dua sampai enam minggu. Kalau ada cicilan yang jatuh
             tempo sebelum itu, langkah 5 menyusun pekerjaan lepas yang bisa menutupinya minggu ini.
           </p>
@@ -377,8 +403,9 @@ if (roleId.value) await search()
       </BaseButton>
     </div>
 
-    <div class="mt-10">
+    <div class="relative z-10 mt-10">
       <BaseButton to="/roadmap" variant="ghost">← Kembali ke roadmap belajar</BaseButton>
     </div>
+  </div>
   </div>
 </template>

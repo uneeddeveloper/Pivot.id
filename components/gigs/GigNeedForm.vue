@@ -86,17 +86,17 @@ const activePreset = computed(() =>
             v-for="option in hourOptions"
             :key="option.value"
             type="button"
-            class="focus-ring rounded-xl border px-3 py-2 text-left transition"
+            class="focus-ring dark:focus-ring-dark rounded-xl border px-3 py-2 text-left transition"
             :class="
               hoursAvailable === option.value
-                ? 'border-brand-300 bg-brand-50 text-brand-800'
-                : 'border-ink-200 bg-white/70 text-ink-600 hover:border-ink-300'
+                ? 'border-brand-300 dark:border-brand-500/40 bg-brand-50 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300'
+                : 'border-ink-200/50 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.02] text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] hover:bg-white dark:hover:bg-white/[0.05]'
             "
             :aria-pressed="hoursAvailable === option.value"
             @click="emit('update:hoursAvailable', option.value)"
           >
-            <span class="block text-sm font-medium">{{ option.label }}</span>
-            <span class="mt-0.5 block text-[11px] leading-tight text-ink-400">
+            <span class="block text-sm font-medium" :class="hoursAvailable === option.value ? 'text-brand-800 dark:text-brand-200' : 'text-ink-900 dark:text-cream-50'">{{ option.label }}</span>
+            <span class="mt-0.5 block text-[11px] leading-tight text-ink-600 dark:text-ink-500">
               {{ option.hint }}
             </span>
           </button>
@@ -104,8 +104,8 @@ const activePreset = computed(() =>
       </FormField>
     </div>
 
-    <div v-if="presets.length" class="mt-5 border-t border-ink-100 pt-4">
-      <p class="text-xs font-semibold tracking-wide text-ink-500 uppercase">
+    <div v-if="presets.length" class="mt-5 border-t border-ink-200/50 dark:border-white/[0.08] pt-4">
+      <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">
         Ambil dari hitunganmu di langkah 1
       </p>
       <div class="mt-2.5 flex flex-wrap gap-2">
@@ -113,20 +113,20 @@ const activePreset = computed(() =>
           v-for="preset in presets"
           :key="preset.label"
           type="button"
-          class="focus-ring rounded-xl border px-3 py-2 text-left transition"
+          class="focus-ring dark:focus-ring-dark rounded-xl border px-3 py-2 text-left transition"
           :class="
             activePreset === preset.label
-              ? 'border-sage-300 bg-sage-50 text-sage-800'
-              : 'border-ink-200 bg-white/70 text-ink-600 hover:border-sage-300 hover:bg-sage-50/60'
+              ? 'border-sage-300 dark:border-sage-500/40 bg-sage-50 dark:bg-sage-900/60 text-sage-700 dark:text-sage-300'
+              : 'border-ink-200/50 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.02] text-ink-600 dark:text-ink-400 hover:border-sage-300 dark:hover:border-sage-500/30 hover:bg-sage-100 dark:hover:bg-sage-900/40'
           "
           :aria-pressed="activePreset === preset.label"
           @click="emit('update:need', preset.value)"
         >
-          <span class="block text-xs text-ink-400">{{ preset.label }}</span>
-          <span class="mt-0.5 block text-sm font-semibold tabular-nums">
+          <span class="block text-xs" :class="activePreset === preset.label ? 'text-sage-700 dark:text-sage-400' : 'text-ink-600 dark:text-ink-500'">{{ preset.label }}</span>
+          <span class="mt-0.5 block text-sm font-semibold tabular-nums" :class="activePreset === preset.label ? 'text-sage-800 dark:text-sage-200' : 'text-ink-900 dark:text-cream-100'">
             {{ formatIDR(preset.value) }}
           </span>
-          <span class="mt-0.5 block text-[11px] leading-tight text-ink-400">{{ preset.hint }}</span>
+          <span class="mt-0.5 block text-[11px] leading-tight" :class="activePreset === preset.label ? 'text-sage-600 dark:text-sage-500' : 'text-ink-600 dark:text-ink-500'">{{ preset.hint }}</span>
         </button>
       </div>
     </div>

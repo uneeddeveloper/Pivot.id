@@ -88,19 +88,28 @@ async function generate() {
 </script>
 
 <template>
-  <div class="relative mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
-    <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72">
-      <div class="aurora-blob -top-28 right-4 h-72 w-72 animate-float bg-cream-300/40" />
-      <div class="aurora-blob -top-20 -left-16 h-64 w-64 bg-sage-200/40" />
-    </div>
+  <div class="surface-dark min-h-screen">
+    <!-- Halaman alur: mengikuti dark theme -->
+    <div class="relative mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
+      <!-- Ambient glow dekorasi -->
+      <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-0 overflow-hidden">
+        <div
+          class="absolute -top-20 right-0 h-64 w-64 rounded-full opacity-[0.15] blur-3xl"
+          style="background: radial-gradient(circle, rgb(247 230 127 / 0.5) 0%, transparent 70%)"
+        />
+        <div
+          class="absolute top-1/3 -left-16 h-48 w-48 rounded-full opacity-[0.08] blur-3xl"
+          style="background: radial-gradient(circle, rgb(169 14 2 / 0.7) 0%, transparent 70%)"
+        />
+      </div>
 
-    <header class="animate-rise flex items-start justify-between gap-6">
+    <header v-reveal class="relative z-10 flex items-start justify-between gap-6">
       <div class="max-w-2xl">
         <StepProgress :current="3" class="max-w-md" />
-        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 dark:text-cream-50 sm:text-4xl">
           Roadmap Belajar
         </h1>
-        <p class="mt-3 text-sm leading-relaxed text-ink-600 sm:text-base">
+        <p class="mt-3 text-sm leading-relaxed text-ink-600 dark:text-ink-400 sm:text-base">
           Kurikulum mandiri yang disusun hanya dari keterampilan yang benar-benar kamu butuhkan —
           seluruhnya dari sumber gratis, dan dipas dengan waktu yang memang kamu punya.
         </p>
@@ -110,21 +119,22 @@ async function generate() {
     </header>
 
     <div
+      v-reveal
       v-if="catalog.error"
-      class="mt-8 rounded-2xl border border-cream-400 bg-cream-100 px-5 py-4"
+      class="relative z-10 mt-8 rounded-[1.25rem] border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-5 py-4"
     >
-      <p class="text-sm font-semibold text-ink-900">Katalog belum bisa dimuat</p>
-      <p class="mt-1 text-sm leading-relaxed text-ink-600">{{ catalog.error }}</p>
+      <p class="text-sm font-semibold text-amber-700 dark:text-amber-100">Katalog belum bisa dimuat</p>
+      <p class="mt-1 text-sm leading-relaxed text-amber-600 dark:text-amber-200/70">{{ catalog.error }}</p>
     </div>
 
     <!-- Belum ada bahan: arahkan balik ke langkah 2, jangan biarkan buntu. -->
-    <BaseCard v-else-if="!gaps.length" tone="soft" class="mt-8">
+    <BaseCard v-reveal v-else-if="!gaps.length" tone="soft" class="relative z-10 mt-8">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex min-w-0 items-center gap-4">
           <MascotFigure pose="tidur" size="sm" class="hidden sm:block" />
           <div class="min-w-0">
-            <p class="font-semibold text-ink-900">Belum ada skill gap yang bisa disusun</p>
-            <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600">
+            <p class="font-semibold text-ink-900 dark:text-cream-50">Belum ada skill gap yang bisa disusun</p>
+            <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600 dark:text-ink-400">
               Roadmap ini dibangun dari selisih antara keterampilan yang sudah kamu punya dan yang
               diminta peran-peran yang menutup Target Income-mu. Isi dulu langkah 2 supaya ada yang
               bisa dihitung.
@@ -138,9 +148,10 @@ async function generate() {
     <template v-else>
       <!-- ── Pilih apa yang mau dikejar ─────────────────────────────────── -->
       <BaseCard
+        v-reveal
         title="Pilih yang mau dikejar duluan"
         subtitle="Diambil dari peran-peran yang gajinya menutup Target Income-mu tapi syaratnya belum terpenuhi. Tidak perlu semuanya — beberapa teratas sudah cukup untuk mulai melamar."
-        class="mt-8"
+        class="relative z-10 mt-8"
       >
         <template #icon>
           <svg
@@ -162,22 +173,22 @@ async function generate() {
             :key="gap.skill.id"
             type="button"
             :aria-pressed="selectedIds.includes(gap.skill.id)"
-            class="focus-ring flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition"
+            class="focus-ring dark:focus-ring-dark flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition"
             :class="
               selectedIds.includes(gap.skill.id)
-                ? 'border-sage-300 bg-sage-100 font-medium text-sage-800'
-                : 'border-ink-200 bg-white/60 text-ink-600 hover:-translate-y-0.5 hover:border-sage-300 hover:bg-sage-50'
+                ? 'border-sage-300 dark:border-sage-500/40 bg-sage-50 dark:bg-sage-900/60 font-medium text-sage-700 dark:text-sage-300'
+                : 'border-ink-200/50 dark:border-white/[0.1] bg-white/50 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:-translate-y-0.5 hover:border-sage-300 dark:hover:border-sage-500/30 hover:bg-sage-50 dark:hover:bg-sage-900/40 hover:text-sage-700 dark:hover:text-sage-300'
             "
             @click="toggleSkill(gap.skill.id)"
           >
             {{ gap.skill.label }}
-            <span class="text-[10px] text-ink-400">{{ gap.roles }} peran</span>
+            <span class="text-[10px] text-ink-500 dark:text-ink-500">{{ gap.roles }} peran</span>
           </button>
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-3">
           <FormField label="Peran yang dituju" field-id="rm-role" hint="Boleh dikosongkan.">
-            <select id="rm-role" v-model="roleId" class="field-input">
+            <select id="rm-role" v-model="roleId" class="field-input-dark">
               <option value="">— Belum ditentukan —</option>
               <option v-for="role in catalog.roles" :key="role.id" :value="role.id">
                 {{ role.title }}
@@ -186,7 +197,7 @@ async function generate() {
           </FormField>
 
           <FormField label="Waktu yang kamu punya" field-id="rm-days" hint="7–90 hari.">
-            <select id="rm-days" v-model.number="days" class="field-input">
+            <select id="rm-days" v-model.number="days" class="field-input-dark">
               <option :value="14">14 hari</option>
               <option :value="21">21 hari</option>
               <option :value="30">30 hari</option>
@@ -195,7 +206,7 @@ async function generate() {
           </FormField>
 
           <FormField label="Jam belajar per hari" field-id="rm-hours" hint="Isi yang realistis.">
-            <select id="rm-hours" v-model.number="hoursPerDay" class="field-input">
+            <select id="rm-hours" v-model.number="hoursPerDay" class="field-input-dark">
               <option :value="1">1 jam</option>
               <option :value="2">2 jam</option>
               <option :value="3">3 jam</option>
@@ -207,7 +218,7 @@ async function generate() {
 
         <p
           v-if="errorMessage"
-          class="mt-4 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-sm leading-relaxed text-brand-800"
+          class="mt-4 rounded-xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-3 py-2.5 text-sm leading-relaxed text-amber-700 dark:text-amber-200/90"
         >
           {{ errorMessage }}
         </p>
@@ -229,7 +240,7 @@ async function generate() {
               </svg>
               {{ generating ? 'Sedang disusun…' : roadmap ? 'Susun ulang' : 'Susun roadmap saya' }}
             </BaseButton>
-            <p class="text-xs text-ink-400">
+            <p class="text-xs text-ink-600 dark:text-ink-400">
               {{ selectedIds.length }} keterampilan dipilih · penyusunan butuh beberapa detik
             </p>
           </div>
@@ -237,14 +248,15 @@ async function generate() {
       </BaseCard>
 
       <!-- ── Hasil ──────────────────────────────────────────────────────── -->
-      <section v-if="roadmap" class="mt-8">
+      <section v-reveal v-if="roadmap" class="relative z-10 mt-8">
         <RoadmapPlan :roadmap="roadmap" />
       </section>
     </template>
 
-    <div class="mt-10 flex flex-wrap gap-3">
+    <div class="relative z-10 mt-10 flex flex-wrap gap-3">
       <BaseButton to="/skill-gap" variant="ghost">← Kembali ke skill gap</BaseButton>
       <BaseButton to="/jobs" variant="ghost">Lanjut ke lowongan →</BaseButton>
     </div>
+  </div>
   </div>
 </template>

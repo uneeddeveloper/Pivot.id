@@ -153,11 +153,11 @@ async function copyPlainText() {
 
     <div class="grid gap-4 sm:grid-cols-2">
       <FormField label="Nama lengkap" field-id="cv-name" hint="Boleh dikosongkan.">
-        <input id="cv-name" v-model="fullName" type="text" class="field-input" placeholder="Nama di CV" />
+        <input id="cv-name" v-model="fullName" type="text" class="field-input-dark" placeholder="Nama di CV" />
       </FormField>
 
       <FormField label="Kota domisili" field-id="cv-city" hint="Mis. Bandung.">
-        <input id="cv-city" v-model="city" type="text" class="field-input" placeholder="Kota" />
+        <input id="cv-city" v-model="city" type="text" class="field-input-dark" placeholder="Kota" />
       </FormField>
 
       <FormField label="Kontak" field-id="cv-contact" hint="Email atau nomor yang mau dicantumkan.">
@@ -165,7 +165,7 @@ async function copyPlainText() {
           id="cv-contact"
           v-model="contact"
           type="text"
-          class="field-input"
+          class="field-input-dark"
           placeholder="email@contoh.com"
         />
       </FormField>
@@ -179,7 +179,7 @@ async function copyPlainText() {
           id="cv-title"
           v-model="jobTitle"
           type="text"
-          class="field-input"
+          class="field-input-dark"
           :placeholder="targetRole?.title || 'Mis. Admin Media Sosial'"
         />
       </FormField>
@@ -191,14 +191,14 @@ async function copyPlainText() {
       kolom boleh dikosongkan — CV-nya tetap keluar dengan penanda yang bisa kamu isi sendiri.
     </PrivacyNote>
 
-    <p v-if="!career.hasSkills" class="mt-4 text-sm leading-relaxed text-ink-500">
+    <p v-if="!career.hasSkills" class="mt-4 text-sm leading-relaxed text-ink-600 dark:text-ink-400">
       Kamu belum menandai keterampilan apa pun. CV-nya tetap bisa dibuat, tapi hasilnya jauh lebih
       tajam kalau langkah 2 diisi dulu.
     </p>
 
     <p
       v-if="errorMessage"
-      class="mt-4 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-sm leading-relaxed text-brand-800"
+      class="mt-4 rounded-xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-3 py-2.5 text-sm leading-relaxed text-amber-700 dark:text-amber-200/90"
     >
       {{ errorMessage }}
     </p>
@@ -220,7 +220,7 @@ async function copyPlainText() {
           </svg>
           {{ generating ? 'Sedang disusun…' : cv ? 'Susun ulang' : 'Susun CV saya' }}
         </BaseButton>
-        <p v-if="!targetLabel" class="text-xs text-ink-400">
+        <p v-if="!targetLabel" class="text-xs text-ink-600 dark:text-ink-400">
           Pilih peran di pencarian lowongan atau isi posisi yang dilamar dulu.
         </p>
       </div>
@@ -232,51 +232,51 @@ async function copyPlainText() {
     <BaseCard :title="cv.headline" subtitle="Kerangka CV-mu. Periksa dan sesuaikan sebelum dikirim.">
       <div class="space-y-5">
         <div>
-          <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">Ringkasan</p>
-          <p class="mt-1.5 text-sm leading-relaxed text-ink-700">{{ cv.summary }}</p>
+          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">Ringkasan</p>
+          <p class="mt-1.5 text-sm leading-relaxed text-ink-900 dark:text-cream-100">{{ cv.summary }}</p>
         </div>
 
         <div v-if="cv.skillGroups.length">
-          <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">Keterampilan</p>
+          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">Keterampilan</p>
           <div class="mt-2 space-y-2">
             <div v-for="group in cv.skillGroups" :key="group.label">
-              <p class="text-sm font-medium text-ink-800">{{ group.label }}</p>
-              <p class="text-sm leading-relaxed text-ink-600">{{ group.items.join(', ') }}</p>
+              <p class="text-sm font-medium text-ink-900 dark:text-cream-50">{{ group.label }}</p>
+              <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">{{ group.items.join(', ') }}</p>
             </div>
           </div>
         </div>
 
         <div v-if="cv.experienceBullets.length">
-          <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">Pengalaman</p>
+          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">Pengalaman</p>
           <ul class="mt-2 space-y-1.5">
             <li
               v-for="bullet in cv.experienceBullets"
               :key="bullet"
-              class="flex gap-2 text-sm leading-relaxed text-ink-700"
+              class="flex gap-2 text-sm leading-relaxed text-ink-900 dark:text-cream-100"
             >
-              <span class="text-ink-300">•</span>{{ bullet }}
+              <span class="text-ink-300 dark:text-ink-600">•</span>{{ bullet }}
             </li>
           </ul>
         </div>
 
         <div v-if="cv.projectSuggestions.length">
-          <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">
+          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">
             Proyek yang bisa kamu kerjakan
           </p>
           <div class="mt-2 space-y-3">
             <div
               v-for="project in cv.projectSuggestions"
               :key="project.title"
-              class="rounded-xl border border-ink-200/70 bg-white/60 px-3 py-2.5"
+              class="rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-3 py-2.5"
             >
-              <p class="text-sm font-medium text-ink-800">{{ project.title }}</p>
+              <p class="text-sm font-medium text-ink-900 dark:text-cream-50">{{ project.title }}</p>
               <ul class="mt-1 space-y-1">
                 <li
                   v-for="bullet in project.bullets"
                   :key="bullet"
-                  class="flex gap-2 text-sm leading-relaxed text-ink-600"
+                  class="flex gap-2 text-sm leading-relaxed text-ink-600 dark:text-ink-400"
                 >
-                  <span class="text-ink-300">•</span>{{ bullet }}
+                  <span class="text-ink-300 dark:text-ink-600">•</span>{{ bullet }}
                 </li>
               </ul>
             </div>
@@ -284,29 +284,29 @@ async function copyPlainText() {
         </div>
 
         <div v-if="cv.atsKeywords.length">
-          <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">
+          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">
             Kata kunci yang sebaiknya muncul apa adanya
           </p>
           <div class="mt-2 flex flex-wrap gap-1.5">
             <span
               v-for="keyword in cv.atsKeywords"
               :key="keyword"
-              class="rounded-full border border-sage-200 bg-sage-50 px-2.5 py-1 text-xs text-sage-800"
+              class="rounded-full border border-sage-300 dark:border-sage-600/40 bg-sage-50 dark:bg-sage-900/60 px-2.5 py-1 text-xs text-sage-700 dark:text-sage-300"
             >
               {{ keyword }}
             </span>
           </div>
         </div>
 
-        <div v-if="cv.tips.length" class="rounded-xl border border-cream-300 bg-cream-50 px-4 py-3">
-          <p class="text-sm font-semibold text-brand-900">Sebelum dikirim</p>
+        <div v-if="cv.tips.length" class="rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-4 py-3">
+          <p class="text-sm font-semibold text-ink-900 dark:text-cream-50">Sebelum dikirim</p>
           <ul class="mt-2 space-y-1.5">
             <li
               v-for="tip in cv.tips"
               :key="tip"
-              class="flex gap-2 text-sm leading-relaxed text-ink-700"
+              class="flex gap-2 text-sm leading-relaxed text-ink-600 dark:text-ink-400"
             >
-              <span class="text-ink-300">•</span>{{ tip }}
+              <span class="text-ink-300 dark:text-ink-600">•</span>{{ tip }}
             </li>
           </ul>
         </div>
@@ -319,7 +319,7 @@ async function copyPlainText() {
       subtitle="Salin ini ke dokumen kosong, lalu ekspor jadi PDF tanpa tabel atau kolom."
     >
       <pre
-        class="max-h-96 overflow-auto rounded-xl border border-ink-200 bg-white/70 p-4 text-xs leading-relaxed whitespace-pre-wrap text-ink-700"
+        class="max-h-96 overflow-auto rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white dark:bg-ink-900 p-4 text-xs leading-relaxed whitespace-pre-wrap text-ink-600 dark:text-ink-300"
         >{{ plainText }}</pre
       >
 

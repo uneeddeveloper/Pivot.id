@@ -31,7 +31,7 @@ const groups = computed(() => catalog.byCategory)
 
     <div class="space-y-5">
       <div v-for="group in groups" :key="group.category">
-        <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">
+        <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">
           {{ group.category }}
         </p>
         <div class="mt-2.5 flex flex-wrap gap-2">
@@ -40,11 +40,11 @@ const groups = computed(() => catalog.byCategory)
             :key="skill.id"
             type="button"
             :aria-pressed="career.ownedSkills.includes(skill.id)"
-            class="focus-ring flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition"
+            class="focus-ring dark:focus-ring-dark flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition"
             :class="
               career.ownedSkills.includes(skill.id)
-                ? 'border-sage-300 bg-sage-100 font-medium text-sage-800'
-                : 'border-ink-200 bg-white/60 text-ink-600 hover:-translate-y-0.5 hover:border-sage-300 hover:bg-sage-50 hover:text-sage-700'
+                ? 'border-sage-300 dark:border-sage-500/40 bg-sage-50 dark:bg-sage-900/60 font-medium text-sage-700 dark:text-sage-300'
+                : 'border-ink-200/50 dark:border-white/[0.1] bg-white/50 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:-translate-y-0.5 hover:border-sage-300 dark:hover:border-sage-500/30 hover:bg-sage-50 dark:hover:bg-sage-900/40 hover:text-sage-700 dark:hover:text-sage-300'
             "
             @click="career.toggleSkill(skill.id)"
           >
@@ -69,8 +69,8 @@ const groups = computed(() => catalog.byCategory)
 
     <template #footer>
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm text-ink-600">
-          <strong class="font-semibold text-sage-700">{{ career.ownedSkills.length }}</strong>
+        <p class="text-sm text-ink-600 dark:text-ink-400">
+          <strong class="font-semibold text-sage-600 dark:text-sage-400">{{ career.ownedSkills.length }}</strong>
           keterampilan tercatat
         </p>
         <BaseButton

@@ -12,6 +12,8 @@
  *
  * Kontras #A90E02 di atas #FFFBD4 = 7.3:1 (lolos WCAG AA untuk teks normal).
  */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-50: #fdf3f1;
   --color-brand-100: #fbe1db;
@@ -60,11 +62,11 @@
   --color-ink-900: #2b2721;
   --color-ink-950: #1a1712;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-    sans-serif;
-  /* Judul memakai huruf yang sedikit lebih tegas supaya hierarki terbaca cepat. */
-  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui,
-    -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  /* Display uses the same family at heavier weights for a unified premium voice. */
+  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
 
   /*
    * Bayangan hangat — memakai cokelat ink, bukan hitam netral, supaya kartu
@@ -78,6 +80,18 @@
   --animate-float: float 11s ease-in-out infinite;
   --animate-drift: drift 16s ease-in-out infinite;
   --animate-count-in: count-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  /* Scrollyteller reveal animations */
+  --animate-reveal-up: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-fade: reveal-fade 0.9s ease-out both;
+  --animate-slide-left: slide-left 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-right: slide-right 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-scale-in: scale-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  /* Dark surface shadows */
+  --shadow-dark-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px -8px rgb(0 0 0 / 0.5);
+  --shadow-dark-lift: 0 4px 6px rgb(0 0 0 / 0.4), 0 20px 40px -18px rgb(0 0 0 / 0.7);
+  --shadow-glow-brand: 0 0 60px -10px rgb(169 14 2 / 0.6), 0 20px 40px -20px rgb(169 14 2 / 0.4);
 }
 
 @keyframes rise {
@@ -125,6 +139,77 @@
   }
 }
 
+/* Scrollyteller keyframes */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-56px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(56px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 30px -5px rgb(169 14 2 / 0.4); }
+  50% { box-shadow: 0 0 60px 0px rgb(169 14 2 / 0.7); }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
@@ -132,14 +217,19 @@
   }
 
   body {
-    @apply bg-cream-100 text-ink-800 antialiased;
+    @apply bg-cream-50 text-ink-900 dark:bg-ink-950 dark:text-cream-50 antialiased transition-colors duration-500;
     /*
-     * Tekstur titik sangat halus di atas krem — memberi kesan kertas supaya
-     * layar besar tidak terasa sebagai bidang warna datar yang kosong.
+     * Tekstur titik sangat halus. Warna disesuaikan dengan light/dark menggunakan CSS custom properties,
+     * tapi sebagai jalan pintas, kita bisa biarkan tekstur light mode,
+     * atau menimpanya di spesifik .dark context.
      */
     background-image: radial-gradient(rgb(148 139 118 / 0.14) 1px, transparent 1px);
     background-size: 22px 22px;
     background-attachment: fixed;
+  }
+  
+  .dark body {
+    background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
   }
 
   h1,
@@ -195,6 +285,11 @@
   @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100;
 }
 
+/* Focus ring untuk konteks dark (offset gelap agar terlihat) */
+@utility focus-ring-dark {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900;
+}
+
 /* Blok "perlu perhatian" — hangat, bukan alarm. */
 @utility attention-note {
   @apply rounded-lg border-l-4 border-cream-500 bg-cream-200/70 px-3 py-2 text-ink-700;
@@ -246,7 +341,13 @@
 
 /* Gaya dasar seluruh input teks/tanggal/select supaya konsisten satu bentuk. */
 @utility field-input {
-  @apply focus-ring w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 shadow-inner transition placeholder:text-ink-300 hover:border-ink-300 focus:border-brand-400;
+  @apply focus-ring dark:focus-ring-dark w-full rounded-xl border border-ink-200 dark:border-white/[0.1] bg-white dark:bg-ink-800 px-3 py-2.5 text-sm text-ink-900 dark:text-cream-100 shadow-inner transition placeholder:text-ink-400 dark:placeholder:text-ink-500 hover:border-ink-300 dark:hover:border-white/[0.18] focus:border-brand-500 dark:focus:border-brand-500 dark:focus:ring-2 dark:focus:ring-brand-500/20;
+  
+  /* Pastikan dropdown option terlihat di browser yang mendukung (terutama saat dark mode) */
+  .dark & option {
+    background-color: var(--color-ink-900);
+    color: var(--color-cream-100, #f5f0e8);
+  }
 }
 
 /* Baris yang bisa digeser tanpa scrollbar terlihat (nav langkah di mobile). */
@@ -270,6 +371,314 @@
   color: transparent;
 }
 
+/* ─── Dark Surface Utilities ─────────────────────────────────────────────── */
+
+/* ─── Surface Utilities (Dynamic Light/Dark) ───────────────────────────── */
+
+/* Permukaan untuk section sinematik (hero). */
+@utility surface-dark {
+  @apply bg-cream-100 dark:bg-ink-950 transition-colors duration-500;
+  
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgb(169 14 2 / 0.05) 0%, transparent 70%),
+    radial-gradient(1px 1px at 50% 50%, rgb(169 14 2 / 0.01) 0%, transparent 100%);
+}
+
+.dark .surface-dark {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgb(169 14 2 / 0.12) 0%, transparent 70%),
+    radial-gradient(1px 1px at 50% 50%, rgb(255 255 255 / 0.03) 0%, transparent 100%);
+}
+
+/* Permukaan tengah-tengah (bukan hitam total). */
+@utility surface-dark-mid {
+  @apply bg-cream-50 dark:bg-ink-900 transition-colors duration-500;
+  
+  background-image: radial-gradient(
+    ellipse 60% 40% at 80% 100%,
+    rgb(169 14 2 / 0.04) 0%,
+    transparent 70%
+  );
+}
+
+.dark .surface-dark-mid {
+  background-image: radial-gradient(
+    ellipse 60% 40% at 80% 100%,
+    rgb(169 14 2 / 0.08) 0%,
+    transparent 70%
+  );
+}
+
+/* Kartu di atas surface (Double-Bezel Shell) */
+@utility surface-dark-card {
+  @apply bg-white/60 dark:bg-white/[0.04] transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)];
+  border: 1px solid rgb(0 0 0 / 0.05);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+
+  &:hover {
+    @apply bg-white/80 dark:bg-white/[0.07];
+    border-color: rgb(169 14 2 / 0.2);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+
+.dark .surface-dark-card {
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow: var(--shadow-dark-soft), inset 0 1px 0 0 rgba(255,255,255,0.05);
+
+  &:hover {
+    border-color: rgb(169 14 2 / 0.4);
+    box-shadow: var(--shadow-dark-lift), 0 0 40px -10px rgba(169, 14, 2, 0.15);
+  }
+}
+
+/* ─── Page Transitions (Vue/Nuxt) ────────────────────────────────────────── */
+
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.99);
+}
+
+/* Staggered lists */
+.stagger-item {
+  animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }
+
+
+/* ─── Scroll Progress Bar ─────────────────────────────────────────────────── */
+
+@utility scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2.5px;
+  background-image: linear-gradient(
+    90deg,
+    var(--color-brand-600) 0%,
+    var(--color-brand-400) 50%,
+    var(--color-cream-300) 100%
+  );
+  transform-origin: left;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ─── Scroll Reveal Base Classes ──────────────────────────────────────────── */
+
+/*
+ * Elemen yang dianimasikan saat masuk viewport.
+ * State awal: tidak terlihat. State .visible: animasi berjalan.
+ */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-reveal-left {
+  opacity: 0;
+  transform: translateX(-48px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.scroll-reveal-right {
+  opacity: 0;
+  transform: translateX(48px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.scroll-reveal-scale {
+  opacity: 0;
+  transform: scale(0.92) translateY(20px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── 9. Utilities: Glassmorphism & Animations ────────────────────────────────────────── */
+
+/* Scroll Reveal */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Shimmering Skeleton */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: theme('colors.ink.100');
+}
+.dark .skeleton-shimmer {
+  background-color: theme('colors.ink.800');
+}
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+}
+.dark .skeleton-shimmer::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.surface-dark-card {
+  position: relative;
+  padding-left: 0;
+
+  &::before {
+    display: none;
+  }
+}
+
+/* ─── Scrollyteller Vertical Timeline ────────────────────────────────────── */
+
+.story-step {
+  position: relative;
+  padding-left: 0;
+
+  &::before {
+    display: none;
+  }
+}
+
+/* Garis penghubung vertikal antar step */
+.story-connector {
+  position: absolute;
+  left: 19px;
+  top: 44px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-brand-600),
+    var(--color-brand-800) 60%,
+    transparent
+  );
+  opacity: 0.4;
+}
+
+/* ─── Section Dividers ────────────────────────────────────────────────────── */
+
+@utility section-fade-dark {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--color-cream-100));
+    pointer-events: none;
+    z-index: 1;
+    transition: background 0.5s;
+  }
+}
+
+.dark .section-fade-dark::before {
+  background: linear-gradient(to bottom, transparent, var(--color-ink-950));
+}
+
+/* Shimmer teks efek — untuk angka dan highlight. */
+@utility text-shimmer {
+  background-image: linear-gradient(
+    110deg,
+    var(--color-brand-400) 0%,
+    var(--color-cream-200) 40%,
+    var(--color-brand-300) 60%,
+    var(--color-cream-100) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+/* ─── Lift variant untuk dark cards ──────────────────────────────────────── */
+@utility lift-dark {
+  @apply transition duration-300 ease-out;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-dark-lift);
+    border-color: rgb(169 14 2 / 0.4) !important;
+  }
+}
+
 /* Hormati preferensi sistem — animasi dekoratif dimatikan total. */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -286,5 +695,22 @@
 
   .lift:hover {
     transform: none;
+  }
+
+  .scroll-reveal,
+  .scroll-reveal-left,
+  .scroll-reveal-right,
+  .scroll-reveal-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .lift-dark:hover {
+    transform: none;
+  }
+
+  .text-shimmer {
+    animation: none;
   }
 }

@@ -5,7 +5,6 @@ const props = withDefaults(
   defineProps<{
     modelValue: number
     placeholder?: string
-    /** Nol ditampilkan sebagai field kosong agar form tidak terasa "menagih". */
     id?: string
     /** Field utama halaman — dibuat lebih besar supaya jelas mana yang wajib diisi. */
     emphasis?: boolean
@@ -38,12 +37,14 @@ const hint = computed(() => (props.modelValue > 0 ? formatIDR(props.modelValue) 
 <template>
   <div>
     <div class="group/input relative">
+      <!-- Prefix "Rp" -->
       <span
-        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 font-medium text-ink-400 transition group-focus-within/input:text-brand-600"
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 font-medium text-ink-500 transition group-focus-within/input:text-brand-400"
         :class="emphasis ? 'text-base' : 'text-sm'"
       >
         Rp
       </span>
+
       <input
         :id="id"
         :value="display"
@@ -51,15 +52,18 @@ const hint = computed(() => (props.modelValue > 0 ? formatIDR(props.modelValue) 
         inputmode="numeric"
         autocomplete="off"
         :placeholder="placeholder"
-        class="focus-ring w-full rounded-xl border border-ink-200 bg-white text-right tabular-nums text-ink-900 shadow-inner transition placeholder:text-ink-300 hover:border-ink-300 focus:border-brand-400"
-        :class="
+        class="w-full rounded-xl border bg-white dark:bg-ink-800 text-right tabular-nums text-ink-900 dark:text-cream-100 transition placeholder:text-ink-400 dark:placeholder:text-ink-600 hover:border-ink-300 dark:hover:border-white/[0.18] focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+        :class="[
           emphasis
             ? 'py-3.5 pr-4 pl-12 text-lg font-semibold'
-            : 'py-2.5 pr-3 pl-10 text-sm'
-        "
+            : 'py-2.5 pr-3 pl-10 text-sm',
+          'border-ink-200 dark:border-white/[0.1] focus:border-brand-400 dark:focus:border-brand-500',
+        ]"
         @input="onInput"
       />
     </div>
-    <p v-if="hint" class="mt-1 text-right text-xs text-ink-400">{{ hint }}</p>
+
+    <!-- Hint formatted IDR -->
+    <p v-if="hint" class="mt-1.5 text-right text-xs text-ink-500">{{ hint }}</p>
   </div>
 </template>

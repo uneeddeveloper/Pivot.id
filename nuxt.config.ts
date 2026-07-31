@@ -24,7 +24,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@pinia/nuxt', '@sidebase/nuxt-auth'],
+  modules: ['@pinia/nuxt', '@sidebase/nuxt-auth', '@nuxtjs/color-mode'],
+  
+  colorMode: {
+    classSuffix: '', // Important for Tailwind CSS (uses .dark instead of .dark-mode)
+  },
 
   auth: {
     // Pada Vercel, WAJIB set Environment Variable:
@@ -104,7 +108,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700&display=swap',
         },
       ],
     },

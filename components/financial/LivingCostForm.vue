@@ -106,17 +106,17 @@ function removeExpense(id: number) {
       <div
         role="radiogroup"
         aria-label="Metode input biaya hidup"
-        class="flex shrink-0 gap-1 rounded-xl border border-ink-200 bg-cream-50 p-1 w-max"
+        class="flex shrink-0 gap-1 rounded-xl border border-ink-200/50 dark:border-white/[0.08] bg-white/40 dark:bg-ink-800 p-1 w-max"
       >
         <button
           type="button"
           role="radio"
           :aria-checked="inputMode === 'simple'"
-          class="focus-ring rounded-lg px-3.5 py-1.5 text-sm font-medium transition"
+          class="focus-ring dark:focus-ring-dark rounded-lg px-3.5 py-1.5 text-sm font-medium transition"
           :class="
             inputMode === 'simple'
               ? 'bg-brand-600 text-cream-50 shadow-brand'
-              : 'text-ink-500 hover:bg-cream-200 hover:text-brand-700'
+              : 'text-ink-500 dark:text-ink-400 hover:bg-white dark:hover:bg-white/[0.07] hover:text-brand-700 dark:hover:text-cream-200'
           "
           @click="setMode('simple')"
         >
@@ -126,11 +126,11 @@ function removeExpense(id: number) {
           type="button"
           role="radio"
           :aria-checked="inputMode === 'detailed'"
-          class="focus-ring rounded-lg px-3.5 py-1.5 text-sm font-medium transition"
+          class="focus-ring dark:focus-ring-dark rounded-lg px-3.5 py-1.5 text-sm font-medium transition"
           :class="
             inputMode === 'detailed'
               ? 'bg-brand-600 text-cream-50 shadow-brand'
-              : 'text-ink-500 hover:bg-cream-200 hover:text-brand-700'
+              : 'text-ink-500 dark:text-ink-400 hover:bg-white dark:hover:bg-white/[0.07] hover:text-brand-700 dark:hover:text-cream-200'
           "
           @click="setMode('detailed')"
         >
@@ -145,17 +145,17 @@ function removeExpense(id: number) {
         </FormField>
 
         <div>
-          <p class="mb-2 text-xs text-ink-400">Belum yakin angkanya? Pakai perkiraan ini dulu:</p>
+          <p class="mb-2 text-xs text-ink-600 dark:text-ink-500">Belum yakin angkanya? Pakai perkiraan ini dulu:</p>
           <div class="flex flex-wrap gap-2">
             <button
               v-for="preset in presets"
               :key="preset.label"
               type="button"
-              class="focus-ring rounded-full border px-3 py-1.5 text-xs transition"
+              class="focus-ring dark:focus-ring-dark rounded-full border px-3 py-1.5 text-xs transition"
               :class="
                 financial.livingCost === preset.value
-                  ? 'border-brand-300 bg-brand-50 font-medium text-brand-700'
-                  : 'border-ink-200 bg-white/60 text-ink-600 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700'
+                  ? 'border-brand-500/40 bg-brand-50/50 dark:bg-brand-500/15 font-medium text-brand-700 dark:text-brand-300'
+                  : 'border-ink-200/50 dark:border-white/[0.1] bg-white/50 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:-translate-y-0.5 hover:border-brand-300 dark:hover:border-brand-500/30 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-700 dark:hover:text-brand-300'
               "
               @click="financial.livingCost = preset.value"
             >
@@ -178,9 +178,9 @@ function removeExpense(id: number) {
           >
             <!-- Input Keterangan -->
             <div class="flex-1">
-              <label 
-                v-if="index === 0" 
-                class="mb-1.5 block text-xs font-medium text-ink-700"
+              <label
+                v-if="index === 0"
+                class="mb-1.5 block text-xs font-medium text-ink-600 dark:text-ink-400"
               >
                 Keterangan
               </label>
@@ -188,15 +188,14 @@ function removeExpense(id: number) {
                 v-model="expense.name"
                 type="text"
                 placeholder="Misal: Kos, Makan, dll"
-                class="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 transition-all placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                class="field-input-dark w-full rounded-lg px-3 py-2 text-sm"
               />
             </div>
             
-            <!-- Input Nominal -->
             <div class="flex-1">
-              <label 
-                v-if="index === 0" 
-                class="mb-1.5 block text-xs font-medium text-ink-700"
+              <label
+                v-if="index === 0"
+                class="mb-1.5 block text-xs font-medium text-ink-600 dark:text-ink-400"
               >
                 Nominal
               </label>
@@ -225,7 +224,7 @@ function removeExpense(id: number) {
         <!-- Tombol Tambah Baris -->
         <button
           type="button"
-          class="focus-ring mt-1 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink-200 bg-transparent py-2.5 text-sm font-medium text-ink-500 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
+          class="focus-ring dark:focus-ring-dark mt-1 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink-200 dark:border-white/[0.08] bg-transparent py-2.5 text-sm font-medium text-ink-600 dark:text-ink-500 transition-colors hover:border-brand-300 dark:hover:border-brand-500/30 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-700 dark:hover:text-brand-300"
           @click="addExpense"
         >
           <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -235,9 +234,9 @@ function removeExpense(id: number) {
         </button>
 
         <!-- Ringkasan Total -->
-        <div class="mt-4 flex items-center justify-between rounded-xl border border-brand-100 bg-brand-50/50 px-4 py-3">
-          <span class="text-sm font-medium text-ink-600">Total Biaya Hidup</span>
-          <span class="text-lg font-bold tabular-nums text-brand-700">
+        <div class="mt-4 flex items-center justify-between rounded-xl border border-ink-200/50 dark:border-white/[0.08] bg-white/50 dark:bg-ink-800 px-4 py-3">
+          <span class="text-sm font-medium text-ink-600 dark:text-ink-400">Total Biaya Hidup</span>
+          <span class="text-lg font-bold tabular-nums text-brand-600 dark:text-brand-300">
             {{ formatIDR(totalDetailed) }}
           </span>
         </div>

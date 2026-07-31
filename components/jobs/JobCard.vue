@@ -55,13 +55,13 @@ const excerpt = computed(() => {
 </script>
 
 <template>
-  <article class="surface-card lift rounded-2xl border border-ink-200/80 p-5">
+  <article class="bg-white/40 dark:surface-dark-card rounded-[1.25rem] border border-ink-200/50 dark:border-white/[0.08] p-5 sm:p-6 transition-all duration-400 hover:border-ink-300 dark:hover:border-white/[0.2] lift-dark">
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div class="min-w-0">
-        <h3 class="font-semibold text-ink-900">{{ job.title }}</h3>
-        <p class="mt-1 text-sm text-ink-600">
-          <span v-if="job.company" class="font-medium">{{ job.company }}</span>
-          <span v-if="job.company && job.location" class="text-ink-300"> · </span>
+        <h3 class="font-semibold text-ink-900 dark:text-cream-50">{{ job.title }}</h3>
+        <p class="mt-1 text-sm text-ink-600 dark:text-ink-400">
+          <span v-if="job.company" class="font-medium text-ink-700 dark:text-ink-300">{{ job.company }}</span>
+          <span v-if="job.company && job.location" class="text-ink-600 dark:text-ink-500"> · </span>
           <span v-if="job.location">{{ job.location }}</span>
         </p>
       </div>
@@ -71,8 +71,8 @@ const excerpt = computed(() => {
         class="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium"
         :class="
           match.meetsTarget
-            ? 'border-sage-300 bg-sage-50 text-sage-800'
-            : 'border-cream-400 bg-cream-200 text-ink-700'
+            ? 'border-sage-300 dark:border-sage-500/40 bg-sage-50 dark:bg-sage-900/60 text-sage-700 dark:text-sage-300'
+            : 'border-ink-200 dark:border-white/[0.1] bg-white dark:bg-ink-700/80 text-ink-600 dark:text-ink-300'
         "
       >
         <svg
@@ -103,9 +103,9 @@ const excerpt = computed(() => {
          angka gajinya. Audiens aplikasi ini justru yang paling rentan ditipu. -->
     <div
       v-if="job.redFlags.length"
-      class="mt-3 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5"
+      class="mt-3 rounded-xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-3 py-2.5"
     >
-      <p class="flex items-center gap-1.5 text-xs font-semibold text-brand-800">
+      <p class="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-100">
         <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path
             fill-rule="evenodd"
@@ -116,70 +116,70 @@ const excerpt = computed(() => {
         Periksa dulu sebelum melamar
       </p>
       <ul class="mt-1.5 space-y-0.5">
-        <li v-for="flag in job.redFlags" :key="flag" class="text-xs leading-relaxed text-brand-800">
+        <li v-for="flag in job.redFlags" :key="flag" class="text-xs leading-relaxed text-amber-700 dark:text-amber-200/90">
           • {{ flag }}
         </li>
       </ul>
-      <p class="mt-1.5 text-xs leading-relaxed text-brand-700/85">
+      <p class="mt-1.5 text-xs leading-relaxed text-amber-600 dark:text-amber-200/70">
         Lowongan yang sah tidak pernah meminta uang dari pelamar.
       </p>
     </div>
 
     <!-- Gaji -->
     <div class="mt-4">
-      <p v-if="salaryLabel" class="text-lg font-semibold tabular-nums text-ink-900">
+      <p v-if="salaryLabel" class="text-lg font-semibold tabular-nums text-ink-900 dark:text-cream-50">
         {{ salaryLabel }}
-        <span class="text-xs font-normal text-ink-400">/ bulan</span>
+        <span class="text-xs font-normal text-ink-600 dark:text-ink-500">/ bulan</span>
       </p>
-      <p v-else class="text-sm text-ink-400">Gaji tidak disebutkan di iklan ini</p>
+      <p v-else class="text-sm text-ink-600 dark:text-ink-500">Gaji tidak disebutkan di iklan ini</p>
 
       <p
         v-if="targetIncome > 0 && job.salaryStated && !match.meetsTarget"
-        class="mt-1 text-xs text-ink-500"
+        class="mt-1 text-xs text-ink-600 dark:text-ink-500"
       >
         Masih kurang
-        <strong class="font-semibold text-ink-700">
+        <strong class="font-semibold text-ink-900 dark:text-cream-100">
           {{ formatIDR(targetIncome - job.salaryMax) }}
         </strong>
         dari Target Income-mu.
       </p>
     </div>
 
-    <p v-if="excerpt" class="mt-3 text-sm leading-relaxed text-ink-500">{{ excerpt }}</p>
+    <p v-if="excerpt" class="mt-3 text-sm leading-relaxed text-ink-600 dark:text-ink-400">{{ excerpt }}</p>
 
     <!-- Cakupan keterampilan -->
     <div v-if="job.skills.length" class="mt-4">
       <div class="flex items-baseline justify-between gap-3">
-        <p class="text-xs text-ink-500">
+        <p class="text-xs text-ink-600 dark:text-ink-400">
           Keterampilan terpenuhi
           <span class="tabular-nums">{{ match.owned.length }}/{{ job.skills.length }}</span>
         </p>
-        <p class="text-xs font-semibold tabular-nums text-ink-700">{{ coveragePercent }}%</p>
+        <p class="text-xs font-semibold tabular-nums text-ink-600 dark:text-ink-300">{{ coveragePercent }}%</p>
       </div>
-      <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-sage-100">
+      <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-sage-100 dark:bg-sage-900/40 border border-sage-200 dark:border-sage-800/50">
         <div
-          class="h-full rounded-full bg-sage-500 transition-all duration-500 ease-out"
+          class="h-full rounded-full bg-sage-600 dark:bg-sage-500 transition-all duration-500 ease-out"
           :style="{ width: `${coveragePercent}%` }"
         />
       </div>
 
       <div class="mt-3 space-y-2">
         <div v-if="ownedSkills.length" class="flex flex-wrap items-center gap-1.5">
-          <span class="mr-0.5 text-xs text-ink-400">Sudah ada:</span>
+          <span class="mr-0.5 text-xs text-ink-600 dark:text-ink-500">Sudah ada:</span>
           <span
             v-for="skill in ownedSkills"
             :key="skill.id"
-            class="rounded-full border border-sage-200 bg-sage-50 px-2 py-0.5 text-[11px] text-sage-800"
+            class="rounded-full border border-sage-300 dark:border-sage-600/40 bg-sage-50 dark:bg-sage-900/60 px-2 py-0.5 text-[11px] text-sage-700 dark:text-sage-300"
           >
             {{ skill.label }}
           </span>
         </div>
         <div v-if="missingSkills.length" class="flex flex-wrap items-center gap-1.5">
-          <span class="mr-0.5 text-xs text-ink-400">Diminta:</span>
+          <span class="mr-0.5 text-xs text-ink-600 dark:text-ink-500">Diminta:</span>
           <span
             v-for="skill in missingSkills"
             :key="skill.id"
-            class="rounded-full border border-dashed border-ink-300 px-2 py-0.5 text-[11px] text-ink-600"
+            class="rounded-full border border-dashed border-ink-300 dark:border-white/[0.15] px-2 py-0.5 text-[11px] text-ink-600 dark:text-ink-400"
           >
             {{ skill.label }}
           </span>
@@ -187,16 +187,16 @@ const excerpt = computed(() => {
       </div>
     </div>
 
-    <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3">
+    <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-ink-200/50 dark:border-white/[0.08] pt-3">
       <span
         v-for="badge in badges"
         :key="badge"
-        class="rounded-lg bg-cream-100 px-2 py-0.5 text-[11px] text-ink-600"
+        class="rounded-lg bg-ink-100/50 dark:bg-white/[0.05] border border-ink-200/50 dark:border-white/[0.05] px-2 py-0.5 text-[11px] text-ink-600 dark:text-ink-400"
       >
         {{ badge }}
       </span>
 
-      <span v-if="job.source" class="text-[11px] text-ink-400">via {{ job.source }}</span>
+      <span v-if="job.source" class="text-[11px] text-ink-600 dark:text-ink-500">via {{ job.source }}</span>
 
       <a
         v-if="job.applyUrl"

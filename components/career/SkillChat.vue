@@ -136,7 +136,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
     <!-- ── Riwayat percakapan ─────────────────────────────────────────────── -->
     <div
       ref="scroller"
-      class="max-h-96 space-y-3 overflow-y-auto rounded-xl border border-ink-200/70 bg-white/50 p-4"
+      class="max-h-96 space-y-3 overflow-y-auto rounded-xl border border-ink-200/50 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.03] p-4"
       role="log"
       aria-live="polite"
       aria-label="Percakapan dengan asisten"
@@ -152,7 +152,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
           :class="
             turn.role === 'user'
               ? 'bg-linear-to-b from-brand-500 to-brand-700 text-cream-50'
-              : 'border border-ink-200 bg-white text-ink-700'
+              : 'border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] text-ink-600 dark:text-ink-400'
           "
         >
           {{ turn.content }}
@@ -161,7 +161,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
 
       <div v-if="sending" class="flex justify-start">
         <p
-          class="flex items-center gap-2 rounded-2xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink-400"
+          class="flex items-center gap-2 rounded-2xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-4 py-2.5 text-sm text-ink-600 dark:text-ink-500"
         >
           <svg
             class="h-4 w-4 animate-spin"
@@ -188,10 +188,10 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
         rows="3"
         :disabled="sending"
         placeholder="Mis. Saya lulusan SMA. Dua tahun bantu warung keluarga — catat stok, layani pembeli, kadang bikin promo di Facebook…"
-        class="field-input resize-y leading-relaxed"
+        class="field-input-dark resize-y leading-relaxed"
         @keydown.enter.exact.prevent="send"
       />
-      <p class="mt-1.5 text-xs text-ink-400">
+      <p class="mt-1.5 text-xs text-ink-600 dark:text-ink-500">
         Tekan Enter untuk mengirim, Shift+Enter untuk baris baru. Punya CV? Boleh langsung
         ditempel di sini.
       </p>
@@ -199,7 +199,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
 
     <p
       v-if="errorMessage"
-      class="mt-3 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-sm leading-relaxed text-brand-800"
+      class="mt-3 rounded-xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-3 py-2.5 text-sm leading-relaxed text-amber-700 dark:text-amber-200/90"
     >
       {{ errorMessage }}
     </p>
@@ -211,21 +211,21 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
     </PrivacyNote>
 
     <!-- ── Yang sudah tertangkap ──────────────────────────────────────────── -->
-    <div v-if="detectedSkills.length" class="mt-5 border-t border-ink-100 pt-4">
-      <p class="text-xs font-semibold tracking-widest text-ink-500 uppercase">
+    <div v-if="detectedSkills.length" class="mt-5 border-t border-ink-200/50 dark:border-white/[0.08] pt-4">
+      <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">
         Sejauh ini terbaca
       </p>
       <div class="mt-2 flex flex-wrap gap-2">
         <span
           v-for="skill in detectedSkills"
           :key="skill.id"
-          class="rounded-full border border-sage-300 bg-sage-100 px-2.5 py-1 text-xs font-medium text-sage-800"
+          class="rounded-full border border-sage-200 dark:border-sage-600/40 bg-sage-50 dark:bg-sage-900/60 px-2.5 py-1 text-xs font-medium text-sage-700 dark:text-sage-300"
         >
           {{ skill.label }}
         </span>
       </div>
 
-      <p v-if="missingInfo.length && !isReady" class="mt-3 text-xs leading-relaxed text-ink-500">
+      <p v-if="missingInfo.length && !isReady" class="mt-3 text-xs leading-relaxed text-ink-600 dark:text-ink-500">
         Masih ingin kami tahu: {{ missingInfo.join(', ') }}.
       </p>
     </div>
@@ -240,7 +240,7 @@ const canFinishEarly = computed(() => !isReady.value && detected.value.length >=
           Cukup, lihat hasilnya sekarang
         </BaseButton>
 
-        <p v-if="isReady" class="text-xs text-sage-700">
+        <p v-if="isReady" class="text-xs text-sage-600 dark:text-sage-400">
           Cukup keterangannya — hasilnya sudah muncul di bawah.
         </p>
       </div>
