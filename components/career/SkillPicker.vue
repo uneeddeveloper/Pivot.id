@@ -16,17 +16,7 @@ const groups = computed(() => catalog.byCategory)
     subtitle="Centang apa adanya. Yang dipelajari otodidak, dari kerja sampingan, atau dari mengurus usaha keluarga tetap dihitung."
   >
     <template #icon>
-      <svg
-        class="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M10 2.5 12.4 7l5 .7-3.6 3.5.9 5-4.7-2.5-4.7 2.5.9-5L2.6 7.7l5-.7L10 2.5Z" />
-      </svg>
+      <Icon name="lucide:star" class="h-5 w-5" />
     </template>
 
     <div class="space-y-5">
@@ -48,19 +38,7 @@ const groups = computed(() => catalog.byCategory)
             "
             @click="career.toggleSkill(skill.id)"
           >
-            <svg
-              v-if="career.ownedSkills.includes(skill.id)"
-              class="h-3 w-3 shrink-0"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
-                clip-rule="evenodd"
-              />
-            </svg>
+            <Icon name="lucide:check" v-if="career.ownedSkills.includes(skill.id)" class="h-3 w-3 shrink-0" aria-hidden="true" />
             {{ skill.label }}
           </button>
         </div>

@@ -78,9 +78,7 @@ const updateSimplifiedTenor = (e: Event) => {
         :aria-label="`Hapus utang ${index + 1}`"
         @click="emit('remove')"
       >
-        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 6h12M8.5 6V4.5h3V6M6.5 6l.6 9h5.8l.6-9" />
-        </svg>
+        <Icon name="lucide:trash-2" class="h-4 w-4" />
       </button>
     </div>
 
@@ -92,7 +90,7 @@ const updateSimplifiedTenor = (e: Event) => {
           :value="debt.name"
           type="text"
           placeholder="Misal: Paylater A, Kartu Kredit, Utang teman"
-          class="field-input-dark"
+          class="field-input"
           @input="emit('update', { name: ($event.target as HTMLInputElement).value })"
         />
       </FormField>
@@ -148,7 +146,7 @@ const updateSimplifiedTenor = (e: Event) => {
             type="number"
             min="1"
             placeholder="0"
-            class="field-input-dark pr-16"
+            class="field-input pr-16"
             @input="updateSimplifiedTenor"
           />
           <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-500">
@@ -168,7 +166,7 @@ const updateSimplifiedTenor = (e: Event) => {
             :id="`${debt.id}-due-simplified`"
             :value="debt.dueDate"
             type="date"
-            class="field-input-dark"
+            class="field-input"
             @input="emit('update', { dueDate: ($event.target as HTMLInputElement).value })"
           />
           <button
@@ -213,14 +211,14 @@ const updateSimplifiedTenor = (e: Event) => {
               min="0"
               step="0.01"
               placeholder="0"
-              class="field-input-dark pr-7 text-right tabular-nums"
+              class="field-input pr-7 text-right tabular-nums"
               @input="emit('update', { interestRate: Number(($event.target as HTMLInputElement).value) || 0 })"
             />
             <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-500">%</span>
           </div>
           <select
             :value="debt.ratePeriod"
-            class="field-input-dark flex-1"
+            class="field-input flex-1"
             @change="emit('update', { ratePeriod: ($event.target as HTMLSelectElement).value as RatePeriod })"
           >
             <option v-for="period in periods" :key="period.value" :value="period.value">
@@ -236,7 +234,7 @@ const updateSimplifiedTenor = (e: Event) => {
             :id="`${debt.id}-due`"
             :value="debt.dueDate"
             type="date"
-            class="field-input-dark"
+            class="field-input"
             @input="emit('update', { dueDate: ($event.target as HTMLInputElement).value })"
           />
           <button
@@ -254,9 +252,7 @@ const updateSimplifiedTenor = (e: Event) => {
     <!-- Peringatan Bunga & Jatuh Tempo (Hanya relevan di Mode Detail) -->
     <template v-if="debt.calcMode === 'detailed'">
       <p v-if="monthlyInterest > 0" class="mt-3 flex items-center gap-1.5 text-xs text-ink-600 dark:text-ink-500">
-        <svg class="h-3.5 w-3.5 shrink-0 text-ink-500 dark:text-ink-600" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.25 9a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-1.5 0V9Z" clip-rule="evenodd" />
-        </svg>
+        <Icon name="lucide:info" class="h-3.5 w-3.5 shrink-0 text-ink-500 dark:text-ink-600" />
         Bunga berjalan sekitar
         <strong class="font-semibold tabular-nums text-ink-900 dark:text-cream-300">
           {{ formatIDR(monthlyInterest) }}

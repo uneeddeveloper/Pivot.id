@@ -24,21 +24,21 @@ const audiences = [
   {
     title: 'Baru lulus',
     body: 'Belum punya pegangan soal gaji berapa yang layak diambil, dan keterampilan apa yang sebenarnya dicari pasar.',
-    icon: 'M10 3 2.5 6.8 10 10.6l7.5-3.8L10 3Zm-5 6.4v3.3c0 1.4 2.2 2.6 5 2.6s5-1.2 5-2.6V9.4l-5 2.5-5-2.5Z',
+    icon: 'lucide:graduation-cap',
     num: '01',
     accent: 'brand',
   },
   {
     title: 'Kena PHK',
     body: 'Perlu kembali bekerja secepatnya, tanpa terpaksa menerima tawaran yang di bawah kebutuhan hidup.',
-    icon: 'M7.5 4.5A1.5 1.5 0 0 1 9 3h2a1.5 1.5 0 0 1 1.5 1.5V5H15a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2.5v-.5ZM9 4.5V5h2v-.5H9Z',
+    icon: 'lucide:briefcase',
     num: '02',
     accent: 'cream',
   },
   {
     title: 'Terjerat pinjol atau judi online',
     body: 'Butuh strategi pelunasan yang masuk akal dan target penghasilan yang jelas, bukan sekadar disuruh berhemat.',
-    icon: 'M6.8 3.2a3.8 3.8 0 0 1 5.4 0l1.6 1.6a.9.9 0 1 1-1.3 1.3l-1.6-1.6a2 2 0 0 0-2.8 2.8l1.6 1.6A.9.9 0 0 1 8.4 10.2L6.8 8.6a3.8 3.8 0 0 1 0-5.4Zm4 6.6a.9.9 0 0 1 1.3 0l1.6 1.6a3.8 3.8 0 0 1-5.4 5.4l-1.6-1.6a.9.9 0 0 1 1.3-1.3l1.6 1.6a2 2 0 0 0 2.8-2.8l-1.6-1.6a.9.9 0 0 1 0-1.3Z',
+    icon: 'lucide:circle-alert',
     num: '03',
     accent: 'sage',
   },
@@ -162,7 +162,7 @@ onMounted(() => {
             At text-[clamp(2.5rem,5vw,4rem)] in a 560px col this fits 2 lines.
           -->
           <h1
-            class="max-w-xl text-[clamp(2.5rem,5vw,4rem)] font-bold leading-[1.07] tracking-tight text-ink-900 dark:text-cream-50"
+            class="max-w-2xl text-balance text-[clamp(2.25rem,4.5vw,3.75rem)] font-bold leading-[1.07] tracking-tight text-ink-900 dark:text-cream-50"
             style="font-family: var(--font-display)"
           >
             Berapa penghasilan yang
@@ -182,13 +182,7 @@ onMounted(() => {
           <div class="mt-8 flex flex-wrap items-center gap-3">
             <BaseButton to="/audit" size="lg">
               Hitung Target Income-ku
-              <svg
-                class="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1"
-                viewBox="0 0 20 20" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-              >
-                <path d="M4 10h12m-5-5 5 5-5 5" />
-              </svg>
+              <Icon name="lucide:arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
             </BaseButton>
             <a
               href="#alur"
@@ -331,9 +325,7 @@ onMounted(() => {
                   <div
                     class="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-500/20 bg-brand-500/10"
                   >
-                    <svg class="h-5 w-5 text-brand-500 dark:text-brand-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path :d="audiences[0].icon" />
-                    </svg>
+                    <Icon :name="audiences[0].icon" class="h-5 w-5 text-brand-500 dark:text-brand-400" aria-hidden="true" />
                   </div>
                   <span class="select-none text-3xl font-bold text-ink-100 dark:text-white/[0.07]" aria-hidden="true">01</span>
                 </div>
@@ -353,9 +345,7 @@ onMounted(() => {
                   <div
                     class="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 dark:border-cream-400/20 dark:bg-cream-400/10"
                   >
-                    <svg class="h-5 w-5 text-amber-500 dark:text-cream-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path :d="audiences[1].icon" />
-                    </svg>
+                    <Icon :name="audiences[1].icon" class="h-5 w-5 text-amber-500 dark:text-cream-400" aria-hidden="true" />
                   </div>
                   <span class="select-none text-3xl font-bold text-ink-100 dark:text-white/[0.07]" aria-hidden="true">02</span>
                 </div>
@@ -375,9 +365,7 @@ onMounted(() => {
                   <div
                     class="flex h-10 w-10 items-center justify-center rounded-xl border border-sage-600/20 bg-sage-600/10 dark:border-sage-500/20 dark:bg-sage-500/10"
                   >
-                    <svg class="h-5 w-5 text-sage-600 dark:text-sage-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path :d="audiences[2].icon" />
-                    </svg>
+                    <Icon :name="audiences[2].icon" class="h-5 w-5 text-sage-600 dark:text-sage-400" aria-hidden="true" />
                   </div>
                   <span class="select-none text-3xl font-bold text-ink-100 dark:text-white/[0.07]" aria-hidden="true">03</span>
                 </div>
@@ -480,7 +468,7 @@ onMounted(() => {
                       </h3>
                       <span
                         v-if="stage.ready"
-                        class="rounded-full border border-sage-600/25 bg-sage-900/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sage-400 uppercase"
+                        class="rounded-full border border-sage-200 dark:border-sage-600/25 bg-sage-100 dark:bg-sage-900/60 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sage-700 dark:text-sage-400 uppercase"
                       >
                         Siap
                       </span>
@@ -489,14 +477,7 @@ onMounted(() => {
                   </div>
 
                   <!-- Arrow -->
-                  <svg
-                    class="mt-0.5 h-4 w-4 shrink-0 text-ink-600 transition-all duration-200 group-hover:translate-x-1 group-hover:text-brand-400"
-                    viewBox="0 0 20 20" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 4l6 6-6 6" />
-                  </svg>
+                  <Icon name="lucide:chevron-right" class="mt-0.5 h-4 w-4 shrink-0 text-ink-600 transition-all duration-200 group-hover:translate-x-1 group-hover:text-brand-400" aria-hidden="true" />
                 </div>
               </div>
             </NuxtLink>
@@ -555,25 +536,13 @@ onMounted(() => {
               <div class="mt-8">
                 <BaseButton to="/audit" size="lg">
                   Mulai audit
-                  <svg
-                    class="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1"
-                    viewBox="0 0 20 20" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  >
-                    <path d="M4 10h12m-5-5 5 5-5 5" />
-                  </svg>
+                    <Icon name="lucide:arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </BaseButton>
               </div>
 
               <!-- Privacy note — moved to CTA per hero-stack discipline -->
               <div class="mt-6 flex items-center justify-center gap-2 text-xs text-ink-500">
-                <svg class="h-3.5 w-3.5 shrink-0 text-sage-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 1.5 3.5 4v5.2c0 4 2.7 7.7 6.5 9.3 3.8-1.6 6.5-5.3 6.5-9.3V4L10 1.5Zm3.1 6.6-3.6 3.6a.75.75 0 0 1-1.06 0L6.9 10.1a.75.75 0 1 1 1.06-1.06l1 1 3.08-3.07a.75.75 0 1 1 1.06 1.06Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <Icon name="lucide:shield-check" class="h-3.5 w-3.5 shrink-0 text-sage-600" aria-hidden="true" />
                 Data utang diproses sepenuhnya di perangkat ini.
               </div>
             </div>

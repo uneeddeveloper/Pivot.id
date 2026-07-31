@@ -1,5 +1,8 @@
 import { z } from 'zod'
 import { chatJson, isLlmConfigured, LlmUnavailableError } from '../../utils/llm'
+import * as _pdf from 'pdf-parse'
+const pdf = (_pdf as any).default || _pdf
+import type { ChatMessage } from '../../utils/llm'
 
 /**
  * POST /api/cv/ats
@@ -58,6 +61,7 @@ const AtsSchema = z.object({
 export type AtsCv = z.infer<typeof AtsSchema>
 
 const SYSTEM_PROMPT = `Kamu menyusun CV format ATS untuk pelamar kerja Indonesia.
+Jika user melampirkan "CV LAMA" atau "gambar CV lama", tugas utamamu adalah me-REVIEW dan MENYEMPURNAKAN konten dari CV lama tersebut, dan memadukannya dengan keterampilan yang dimilikinya saat ini ke dalam standar ATS yang kaku.
 
 Yang dimaksud ATS-friendly:
 - Teks polos. Tanpa tabel, kolom, grafik, ikon, atau simbol aneh.
@@ -67,17 +71,41 @@ Yang dimaksud ATS-friendly:
 
 Aturan yang mengikat:
 - JANGAN mengarang riwayat kerja, gelar, sertifikat, atau angka pencapaian.
-  Kalau user belum memberi datanya, tulis poin dengan placeholder bertanda
-  kurung siku, mis. "[isi jumlah]" — supaya jelas bagian itu harus dia lengkapi.
-- Kalau pengalaman formalnya 0 tahun, jangan menutupinya. Alihkan bobotnya ke
-  bagian Proyek: sarankan proyek kecil yang benar-benar bisa dia kerjakan sendiri.
+- Jika ada CV lama, ambil pengalaman, pendidikan, dan proyek dari CV lama tersebut lalu perbaiki tata bahasanya agar lebih kuat, berbasis pencapaian (angka), dan profesional.
+- Jika tidak ada CV lama dan user belum memberi datanya, tulis poin dengan placeholder bertanda kurung siku, mis. "[isi jumlah]" — supaya jelas bagian itu harus dia lengkapi.
+- Kalau pengalaman formalnya 0 tahun (dan di CV lama tidak ada), jangan menutupinya. Alihkan bobotnya ke bagian Proyek: sarankan proyek kecil yang benar-benar bisa dia kerjakan sendiri.
 - Bahasa Indonesia, lugas, tanpa kata sifat berlebihan seperti "sangat ahli".
 - Nada tenang dan hormat. Pembacanya sedang butuh pekerjaan, bukan sedang iseng.
 
 Balas HANYA JSON sesuai skema.`
 
 export default defineEventHandler(async (event) => {
-  const body = BodySchema.parse(await readBody(event))
+  const contentType = getHeader(event, 'content-type') || ''
+  const isMultipart = contentType.includes('multipart/form-data')
+
+  let parsedBody: any
+  let fileBuffer: Buffer | undefined
+  let fileType: string | undefined
+
+  if (isMultipart) {
+    const formData = await readMultipartFormData(event)
+    if (!formData) throw createError({ statusCode: 400, message: 'Invalid form data' })
+
+    const dataField = formData.find(f => f.name === 'data')
+    if (!dataField) throw createError({ statusCode: 400, message: 'Missing data' })
+    
+    parsedBody = JSON.parse(dataField.data.toString())
+    
+    const fileField = formData.find(f => f.name === 'file')
+    if (fileField) {
+      fileBuffer = fileField.data
+      fileType = fileField.type
+    }
+  } else {
+    parsedBody = await readBody(event)
+  }
+
+  const body = BodySchema.parse(parsedBody)
 
   if (!isLlmConfigured()) {
     throw createError({
@@ -129,11 +157,32 @@ export default defineEventHandler(async (event) => {
     .filter(Boolean)
     .join('\n')
 
+  let userMessage: ChatMessage = { role: 'user', content: prompt }
+
+  if (fileBuffer && fileType) {
+    if (fileType === 'application/pdf') {
+      try {
+        const data = await pdf(fileBuffer)
+        userMessage.content = `${prompt}\n\n[ISI CV LAMA]:\n${data.text}`
+      } catch (err) {
+        throw createError({ statusCode: 400, message: 'Gagal membaca PDF. Pastikan file valid.' })
+      }
+    } else if (fileType.startsWith('image/')) {
+      const base64Data = fileBuffer.toString('base64')
+      const imageUrl = `data:${fileType};base64,${base64Data}`
+      
+      userMessage.content = [
+        { type: 'text', text: `${prompt}\n\n[Berikut adalah gambar CV lama pengguna yang perlu ditinjau dan diekstrak]` },
+        { type: 'image_url', image_url: { url: imageUrl } }
+      ]
+    }
+  }
+
   try {
     const cv = await chatJson(
       [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: prompt },
+        userMessage,
       ],
       AtsSchema,
       {

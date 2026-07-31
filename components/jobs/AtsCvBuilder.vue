@@ -12,7 +12,10 @@ import { useCatalogStore } from '~/stores/catalog'
  * dikosongkan — hasilnya tetap keluar dengan placeholder.
  */
 
-const props = defineProps<{ roleId: string }>()
+const props = defineProps<{ 
+  roleId: string
+  query?: string 
+}>()
 
 const career = useCareerStore()
 const catalog = useCatalogStore()
@@ -21,7 +24,19 @@ const { toastSuccess, toastError } = useAlert()
 const fullName = ref('')
 const city = ref('')
 const contact = ref('')
-const jobTitle = ref('')
+const jobTitle = ref(props.query || '')
+
+import { watch } from 'vue'
+watch(() => props.query, (newQuery) => {
+  if (newQuery && !jobTitle.value) {
+    jobTitle.value = newQuery
+  }
+})
+
+// File Upload State
+const attachedFile = ref<File | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+const isDragging = ref(false)
 
 const generating = ref(false)
 const errorMessage = ref('')
@@ -46,6 +61,32 @@ const targetLabel = computed(() => jobTitle.value.trim() || targetRole.value?.ti
 
 const canGenerate = computed(() => Boolean(targetLabel.value) && !generating.value)
 
+function triggerFileSelect() {
+  fileInput.value?.click()
+}
+
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    attachedFile.value = target.files[0]
+  }
+}
+
+function clearFile() {
+  attachedFile.value = null
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+function handleDrop(event: DragEvent) {
+  isDragging.value = false
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0]
+    if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+      attachedFile.value = file
+    }
+  }
+}
+
 async function generate() {
   if (!canGenerate.value) return
 
@@ -53,19 +94,35 @@ async function generate() {
   errorMessage.value = ''
 
   try {
-    const response = await $fetch<{ cv: AtsCv }>('/api/cv/ats', {
-      method: 'POST',
-      body: {
-        fullName: fullName.value.trim(),
-        city: city.value.trim(),
-        contact: contact.value.trim(),
-        roleId: props.roleId || undefined,
-        jobTitle: jobTitle.value.trim(),
-        skillIds: career.ownedSkills,
-        experienceYears: career.experienceYears,
-        background: career.background,
-      },
-    })
+    const dataPayload = {
+      fullName: fullName.value.trim(),
+      city: city.value.trim(),
+      contact: contact.value.trim(),
+      roleId: props.roleId || undefined,
+      jobTitle: jobTitle.value.trim(),
+      skillIds: career.ownedSkills,
+      experienceYears: career.experienceYears,
+      background: career.background,
+    }
+
+    let response
+    
+    if (attachedFile.value) {
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(dataPayload))
+      formData.append('file', attachedFile.value)
+
+      response = await $fetch<{ cv: AtsCv }>('/api/cv/ats', {
+        method: 'POST',
+        body: formData,
+      })
+    } else {
+      response = await $fetch<{ cv: AtsCv }>('/api/cv/ats', {
+        method: 'POST',
+        body: { data: dataPayload },
+      })
+    }
+    
     cv.value = response.cv
   } catch (error) {
     const payload =
@@ -134,34 +191,28 @@ async function copyPlainText() {
     toastError('Browser menolak akses papan klip. Sorot teksnya lalu salin manual.')
   }
 }
+
+function printPdf() {
+  window.print()
+}
 </script>
 
 <template>
   <BaseCard
     title="Susun CV format ATS"
-    subtitle="Banyak lamaran gugur sebelum dibaca manusia karena formatnya tidak terbaca mesin penyaring. Yang ini teks polos — dibuat supaya lolos tahap itu."
+    subtitle="Mesin penyaring ATS butuh teks polos tanpa ikon. Buat otomatis dari nol, atau unggah CV lamamu agar di-review dan diperbaiki oleh AI."
   >
     <template #icon>
-      <svg
-        class="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M12 2.5H6a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 6 17.5h8a1.5 1.5 0 0 0 1.5-1.5V6L12 2.5Zm0 0V6h3.5M7.5 10.5h5M7.5 13.5h3" />
-      </svg>
+      <Icon name="lucide:file-text" class="h-5 w-5" />
     </template>
 
     <div class="grid gap-4 sm:grid-cols-2">
       <FormField label="Nama lengkap" field-id="cv-name" hint="Boleh dikosongkan.">
-        <input id="cv-name" v-model="fullName" type="text" class="field-input-dark" placeholder="Nama di CV" />
+        <input id="cv-name" v-model="fullName" type="text" class="field-input" placeholder="Nama di CV" />
       </FormField>
 
       <FormField label="Kota domisili" field-id="cv-city" hint="Mis. Bandung.">
-        <input id="cv-city" v-model="city" type="text" class="field-input-dark" placeholder="Kota" />
+        <input id="cv-city" v-model="city" type="text" class="field-input" placeholder="Kota" />
       </FormField>
 
       <FormField label="Kontak" field-id="cv-contact" hint="Email atau nomor yang mau dicantumkan.">
@@ -169,7 +220,7 @@ async function copyPlainText() {
           id="cv-contact"
           v-model="contact"
           type="text"
-          class="field-input-dark"
+          class="field-input"
           placeholder="email@contoh.com"
         />
       </FormField>
@@ -183,16 +234,74 @@ async function copyPlainText() {
           id="cv-title"
           v-model="jobTitle"
           type="text"
-          class="field-input-dark"
+          class="field-input"
           :placeholder="targetRole?.title || 'Mis. Admin Media Sosial'"
         />
       </FormField>
     </div>
+    
+    <!-- Area Upload CV Lama -->
+    <div class="mt-6 border-t border-ink-200/50 dark:border-white/[0.05] pt-5">
+      <h3 class="mb-3 text-sm font-semibold text-ink-900 dark:text-cream-50">Review & Perbaiki CV Lama (Opsional)</h3>
+      <p class="mb-4 text-xs text-ink-600 dark:text-ink-400">Punya CV lama? Unggah file PDF/Gambarnya ke sini. AI akan meninjau pengalaman di dalamnya, menyempurnakan bahasanya, dan menuliskannya ulang ke dalam standar ATS.</p>
+      
+      <div 
+        class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors duration-200 cursor-pointer"
+        :class="[
+          isDragging ? 'border-brand-500 bg-brand-50/50 dark:border-brand-400 dark:bg-brand-900/20' : 'border-ink-200 dark:border-white/[0.12] hover:border-brand-400 dark:hover:border-brand-500 hover:bg-ink-50 dark:hover:bg-white/[0.02]',
+        ]"
+        @dragover.prevent="isDragging = true"
+        @dragleave.prevent="isDragging = false"
+        @drop.prevent="handleDrop"
+        @click="triggerFileSelect"
+      >
+        <input 
+          ref="fileInput"
+          type="file" 
+          accept=".pdf,image/png,image/jpeg,image/webp" 
+          class="hidden" 
+          @change="handleFileSelect" 
+        />
+        
+        <template v-if="attachedFile">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400">
+              <Icon :name="attachedFile.type === 'application/pdf' ? 'lucide:file-text' : 'lucide:image'" class="h-5 w-5" />
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-medium text-ink-900 dark:text-cream-50">{{ attachedFile.name }}</p>
+              <p class="text-xs text-ink-500 dark:text-ink-400">Siap direview oleh AI</p>
+            </div>
+            <button 
+              type="button" 
+              class="ml-2 rounded-lg p-2 text-ink-400 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-500 dark:hover:bg-white/[0.05] dark:hover:text-cream-100 relative z-10" 
+              title="Hapus file"
+              @click.stop="clearFile"
+            >
+              <Icon name="lucide:trash-2" class="h-4 w-4" />
+            </button>
+          </div>
+        </template>
+        <template v-else>
+          <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-ink-100 dark:bg-white/[0.05] text-ink-500 dark:text-ink-400">
+            <Icon name="lucide:upload-cloud" class="h-5 w-5" />
+          </div>
+          <p class="text-sm text-ink-900 dark:text-cream-50 font-medium">Drag & drop file CV lamamu di sini</p>
+          <p class="mt-1 text-xs text-ink-500 dark:text-ink-400">Mendukung PDF, JPG, PNG (Maks. 5MB)</p>
+          <button 
+            type="button" 
+            class="mt-3 text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 relative z-10" 
+            @click.stop="triggerFileSelect"
+          >
+            Pilih File Manual
+          </button>
+        </template>
+      </div>
+    </div>
 
     <PrivacyNote compact class="mt-4">
       Isian di atas dikirim sekali ke server untuk disusun, lalu
-      <strong class="font-semibold">tidak disimpan ke database</strong> dan tidak di-cache. Semua
-      kolom boleh dikosongkan — CV-nya tetap keluar dengan penanda yang bisa kamu isi sendiri.
+      <strong class="font-semibold">tidak disimpan ke database</strong> dan tidak di-cache.
     </PrivacyNote>
 
     <p v-if="!career.hasSkills" class="mt-4 text-sm leading-relaxed text-ink-600 dark:text-ink-400">
@@ -210,19 +319,8 @@ async function copyPlainText() {
     <template #footer>
       <div class="flex flex-wrap items-center gap-3">
         <BaseButton :disabled="!canGenerate" @click="generate">
-          <svg
-            v-if="generating"
-            class="h-4 w-4 animate-spin"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <circle cx="10" cy="10" r="7" class="opacity-25" />
-            <path d="M17 10a7 7 0 0 0-7-7" stroke-linecap="round" />
-          </svg>
-          {{ generating ? 'Sedang disusun…' : cv ? 'Susun ulang' : 'Susun CV saya' }}
+          <Icon name="lucide:loader-circle" v-if="generating" class="h-4 w-4 animate-spin" aria-hidden="true" />
+          {{ generating ? 'Sedang mereview & menyusun…' : cv ? 'Susun ulang' : (attachedFile ? 'Review & Susun ATS CV' : 'Susun CV dari nol') }}
         </BaseButton>
         <p v-if="!targetLabel" class="text-xs text-ink-600 dark:text-ink-400">
           Pilih peran di pencarian lowongan atau isi posisi yang dilamar dulu.
@@ -233,39 +331,78 @@ async function copyPlainText() {
 
   <!-- ── Hasil ──────────────────────────────────────────────────────────── -->
   <div v-if="cv" class="mt-4 space-y-4">
-    <BaseCard :title="cv.headline" subtitle="Kerangka CV-mu. Periksa dan sesuaikan sebelum dikirim.">
-      <div class="space-y-5">
-        <div>
-          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">Ringkasan</p>
-          <p class="mt-1.5 text-sm leading-relaxed text-ink-900 dark:text-cream-100">{{ cv.summary }}</p>
+    
+    <BaseCard
+      tone="soft"
+      title="Template ATS Siap Cetak"
+      subtitle="Dokumen ini sudah dioptimalkan untuk mesin pembaca (ATS). Tekan tombol di bawah untuk menyimpannya langsung sebagai PDF."
+    >
+      <div 
+        class="cv-print-area mx-auto mt-4 w-full max-w-[700px] overflow-hidden bg-white p-8 text-black shadow-sm outline outline-1 outline-ink-200/50 dark:outline-white/20 print:shadow-none print:outline-none"
+      >
+        <div class="mb-4 text-center">
+          <h1 class="text-2xl font-bold uppercase tracking-wide">{{ fullName || '[Nama Lengkap]' }}</h1>
+          <p class="mt-1 text-sm text-gray-700">
+            {{ [city, contact].filter(Boolean).join(' | ') }}
+          </p>
         </div>
 
-        <div v-if="cv.skillGroups.length">
-          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">Keterampilan</p>
-          <div class="mt-2 space-y-2">
-            <div v-for="group in cv.skillGroups" :key="group.label">
-              <p class="text-sm font-medium text-ink-900 dark:text-cream-50">{{ group.label }}</p>
-              <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">{{ group.items.join(', ') }}</p>
-            </div>
+        <div class="mb-4" v-if="cv.summary">
+          <h2 class="mb-1.5 border-b border-black pb-1 text-sm font-bold uppercase tracking-wider">Ringkasan</h2>
+          <p class="text-[13px] leading-relaxed text-black">{{ cv.summary }}</p>
+        </div>
+
+        <div class="mb-4" v-if="cv.skillGroups.length">
+          <h2 class="mb-1.5 border-b border-black pb-1 text-sm font-bold uppercase tracking-wider">Keterampilan</h2>
+          <div v-for="group in cv.skillGroups" :key="group.label" class="mb-1 text-[13px] text-black">
+            <span class="font-bold">{{ group.label }}:</span>
+            <span> {{ group.items.join(', ') }}</span>
           </div>
         </div>
 
-        <div v-if="cv.experienceBullets.length">
-          <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">Pengalaman</p>
-          <ul class="mt-2 space-y-1.5">
-            <li
-              v-for="bullet in cv.experienceBullets"
-              :key="bullet"
-              class="flex gap-2 text-sm leading-relaxed text-ink-900 dark:text-cream-100"
-            >
-              <span class="text-ink-300 dark:text-ink-600">•</span>{{ bullet }}
-            </li>
+        <div class="mb-4" v-if="cv.experienceBullets.length">
+          <h2 class="mb-1.5 border-b border-black pb-1 text-sm font-bold uppercase tracking-wider">Pengalaman Kerja</h2>
+          <ul class="list-disc pl-5 text-[13px] leading-relaxed text-black">
+            <li v-for="bullet in cv.experienceBullets" :key="bullet" class="mb-1">{{ bullet }}</li>
           </ul>
         </div>
 
+        <div class="mb-4" v-if="cv.projectSuggestions.length">
+          <h2 class="mb-1.5 border-b border-black pb-1 text-sm font-bold uppercase tracking-wider">Proyek & Portofolio</h2>
+          <div v-for="project in cv.projectSuggestions" :key="project.title" class="mb-2">
+            <h3 class="text-[13px] font-bold">{{ project.title }}</h3>
+            <ul class="list-disc pl-5 text-[13px] leading-relaxed text-black">
+              <li v-for="bullet in project.bullets" :key="bullet" class="mb-1">{{ bullet }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h2 class="mb-1.5 border-b border-black pb-1 text-sm font-bold uppercase tracking-wider">Pendidikan</h2>
+          <p class="text-[13px] text-black">[Nama Institusi] — [Jurusan], [Tahun]</p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex flex-wrap items-center gap-3">
+          <BaseButton size="sm" @click="printPdf">
+            <Icon name="lucide:printer" class="h-4 w-4 mr-1.5" /> Download PDF (ATS)
+          </BaseButton>
+          <BaseButton size="sm" variant="secondary" @click="copyPlainText">
+            {{ copied ? 'Tersalin' : 'Salin Teks Polos' }}
+          </BaseButton>
+        </div>
+      </template>
+    </BaseCard>
+
+    <BaseCard :title="cv.headline" subtitle="Review AI atas CV ini">
+      <div class="space-y-5">
         <div v-if="cv.projectSuggestions.length">
           <p class="text-[10px] font-semibold tracking-[0.14em] text-ink-600 dark:text-ink-500 uppercase">
-            Proyek yang bisa kamu kerjakan
+            Saran Proyek
+          </p>
+          <p class="mt-1 text-sm text-ink-600 dark:text-ink-400">
+            Berikut proyek yang dapat menutupi celah jika pengalaman formalmu dirasa kurang:
           </p>
           <div class="mt-2 space-y-3">
             <div
@@ -303,7 +440,7 @@ async function copyPlainText() {
         </div>
 
         <div v-if="cv.tips.length" class="rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-4 py-3">
-          <p class="text-sm font-semibold text-ink-900 dark:text-cream-50">Sebelum dikirim</p>
+          <p class="text-sm font-semibold text-ink-900 dark:text-cream-50">Saran AI Sebelum dikirim</p>
           <ul class="mt-2 space-y-1.5">
             <li
               v-for="tip in cv.tips"
@@ -315,23 +452,6 @@ async function copyPlainText() {
           </ul>
         </div>
       </div>
-    </BaseCard>
-
-    <BaseCard
-      tone="soft"
-      title="Versi teks polos"
-      subtitle="Salin ini ke dokumen kosong, lalu ekspor jadi PDF tanpa tabel atau kolom."
-    >
-      <pre
-        class="max-h-96 overflow-auto rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white dark:bg-ink-900 p-4 text-xs leading-relaxed whitespace-pre-wrap text-ink-600 dark:text-ink-300"
-        >{{ plainText }}</pre
-      >
-
-      <template #footer>
-        <BaseButton size="sm" variant="secondary" @click="copyPlainText">
-          {{ copied ? 'Tersalin' : 'Salin teks CV' }}
-        </BaseButton>
-      </template>
     </BaseCard>
   </div>
 </template>

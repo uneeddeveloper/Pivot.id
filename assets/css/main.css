@@ -957,3 +957,44 @@ body:not(.swal2-toast-shown) .swal2-container.pivot-swal-container {
     animation: none;
   }
 }
+
+/* ─── Fix Select Options for Windows Dark Mode ──────────────────────────── */
+/* 
+ * Windows native select dropdowns often render white-on-white in dark mode
+ * if background-color and color aren't explicitly enforced on the <option> tag.
+ */
+.dark select option,
+.dark select.field-input option {
+  background-color: var(--color-ink-900) !important;
+  color: var(--color-cream-100) !important;
+}
+
+select.field-input {
+  /* Beri ruang agar teks panjang tidak menimpa ikon panah dropdown bawaan OS */
+  padding-right: 2.5rem;
+}
+
+/* ─── ATS CV Print Styles ────────────────────────────────────────────────── */
+@media print {
+  /* Sembunyikan semua elemen di luar area cetak */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Tampilkan hanya area cetak CV */
+  .cv-print-area, .cv-print-area * {
+    visibility: visible;
+  }
+
+  .cv-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+}

@@ -34,17 +34,7 @@ async function removeDebt(debt: Debt) {
     subtitle="Belum punya utang? Lewati bagian ini. Kalau ada yang belum kamu ingat angkanya, isi perkiraan dulu nanti mudah diubah."
   >
     <template #icon>
-      <svg
-        class="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M3 6.5h14v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9Zm0 0 1.6-3h10.8l1.6 3M10 10v3.5" />
-      </svg>
+      <Icon name="lucide:credit-card" class="h-5 w-5" />
     </template>
 
     <div class="space-y-4">
@@ -67,16 +57,7 @@ async function removeDebt(debt: Debt) {
     </div>
 
     <BaseButton variant="ghost" block class="mt-4" @click="financial.addDebt()">
-      <svg
-        class="h-4 w-4"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      >
-        <path d="M10 5v10M5 10h10" />
-      </svg>
+      <Icon name="lucide:plus" class="h-4 w-4" />
       Tambah utang lain
     </BaseButton>
 

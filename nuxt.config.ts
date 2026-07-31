@@ -24,7 +24,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@pinia/nuxt', '@sidebase/nuxt-auth', '@nuxtjs/color-mode'],
+  modules: ['@pinia/nuxt', '@sidebase/nuxt-auth', '@nuxtjs/color-mode', '@nuxt/icon'],
   
   colorMode: {
     classSuffix: '', // Important for Tailwind CSS (uses .dark instead of .dark-mode)
