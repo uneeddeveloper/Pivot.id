@@ -1,8 +1,7 @@
 import { z } from 'zod'
 import { keepKnownSkillIds } from '../../../shared/skills'
 import { chatJson, isLlmConfigured, LlmUnavailableError } from '../../utils/llm'
-import * as _pdf from 'pdf-parse'
-const pdf = (_pdf as any).default || _pdf
+import { extractPdfText, PdfReadError } from '../../utils/pdf'
 import type { ChatMessage } from '../../utils/llm'
 
 /**
@@ -136,10 +135,16 @@ export default defineEventHandler(async (event) => {
     
     if (fileType === 'application/pdf') {
       try {
-        const data = await pdf(fileBuffer)
-        lastUserMessage.content = `${lastUserMessage.content}\n\n[Isi Lampiran CV/Dokumen]:\n${data.text}`
-      } catch (err) {
-        throw createError({ statusCode: 400, message: 'Gagal membaca PDF. Pastikan file valid.' })
+        const extracted = await extractPdfText(fileBuffer)
+        lastUserMessage.content = `${lastUserMessage.content}\n\n[Isi Lampiran CV/Dokumen]:\n${extracted}`
+      } catch (error) {
+        if (!(error instanceof PdfReadError)) throw error
+        console.error('[interview:pdf]', error.message)
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'PDF tidak bisa dibaca',
+          data: { message: error.userMessage },
+        })
       }
     } else if (fileType.startsWith('image/')) {
       const base64Data = fileBuffer.toString('base64')
