@@ -1,7 +1,31 @@
 <script setup lang="ts">
 import { useFinancialStore } from '~/stores/financial'
+import type { Debt } from '~/types/financial'
 
 const financial = useFinancialStore()
+const { confirmAction } = useAlert()
+
+/**
+ * Baris kosong dihapus langsung — mengonfirmasi sesuatu yang belum diisi cuma
+ * bikin user berhenti dua kali. Konfirmasi hanya muncul kalau ada angka/nama
+ * yang benar-benar hilang.
+ */
+async function removeDebt(debt: Debt) {
+  const isFilled = Boolean(debt.name.trim()) || debt.principal > 0 || debt.minPayment > 0
+
+  if (isFilled) {
+    const confirmed = await confirmAction({
+      title: `Hapus ${debt.name.trim() || 'utang ini'}?`,
+      text: 'Baris ini beserta angkanya akan hilang dari daftar dan dari simulasi pelunasan.',
+      confirmText: 'Ya, hapus',
+      cancelText: 'Batal',
+      destructive: true,
+    })
+    if (!confirmed) return
+  }
+
+  financial.removeDebt(debt.id)
+}
 </script>
 
 <template>
@@ -27,7 +51,7 @@ const financial = useFinancialStore()
           :index="index"
           :removable="financial.debts.length > 1"
           @update="financial.updateDebt(debt.id, $event)"
-          @remove="financial.removeDebt(debt.id)"
+          @remove="removeDebt(debt)"
         />
       </TransitionGroup>
     </div>

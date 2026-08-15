@@ -1,4 +1,23 @@
+import { createRequire } from 'node:module'
 import tailwindcss from '@tailwindcss/vite'
+
+const requireFromRoot = createRequire(`${process.cwd()}/nuxt.config.ts`)
+
+/**
+ * Resolve sebuah paket kalau ada, dan diam saja kalau tidak.
+ *
+ * Dipakai untuk paket binary per-platform: mesin dev Windows hanya punya
+ * `win32-x64-msvc`, sedangkan Vercel hanya punya `linux-x64-gnu`. Yang tidak
+ * cocok dengan platform saat ini memang WAJAR tidak ketemu dan tidak boleh
+ * menggagalkan build.
+ */
+function resolveIfPresent(id: string): string[] {
+  try {
+    return [requireFromRoot.resolve(id)]
+  } catch {
+    return []
+  }
+}
 
 /**
  * Origin publik aplikasi, dipakai @sidebase/nuxt-auth untuk menyusun URL callback.
@@ -25,6 +44,45 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: ['@pinia/nuxt', '@sidebase/nuxt-auth', '@nuxtjs/color-mode', '@nuxt/icon'],
+
+  /**
+   * `pdf-parse` menarik `pdfjs-dist`, yang saat diimpor memuat `@napi-rs/canvas`
+   * untuk mem-polyfill DOMMatrix. Tanpa paket itu, impornya melempar
+   * `ReferenceError: DOMMatrix is not defined` dan route-nya balas 500.
+   *
+   * Binary-nya di-resolve DINAMIS per platform di dalam `js-binding.js`
+   * (`@napi-rs/canvas-linux-x64-gnu` di Vercel), jadi penelusur file Nitro
+   * tidak bisa mengikutinya secara statis dan diam-diam meninggalkannya di luar
+   * bundel serverless. Di lokal semuanya terlihat sehat karena node_modules
+   * masih utuh — kegagalannya HANYA muncul setelah deploy.
+   *
+   * Masalah yang sama menimpa `pdf.worker.mjs`: pdfjs memuatnya lewat
+   * spesifier yang dirakit saat runtime ("fake worker"), jadi file itu juga
+   * tertinggal dan ekstraksi teks gagal dengan "Setting up fake worker failed".
+   *
+   * `traceInclude` memaksa semuanya ikut terbawa.
+   */
+  nitro: {
+    externals: {
+      traceInclude: [
+        ...resolveIfPresent('@napi-rs/canvas'),
+        ...resolveIfPresent('@napi-rs/canvas-linux-x64-gnu'),
+        ...resolveIfPresent('pdfjs-dist/legacy/build/pdf.worker.mjs'),
+      ],
+    },
+
+    /**
+     * Panggilan LLM diukur 6+ detik untuk jawaban panjang, sementara
+     * `SUMOPOD_TIMEOUT_MS` memberi ruang sampai 60 detik. Default fungsi Vercel
+     * jauh lebih pendek dari itu, jadi tanpa baris ini permintaan yang wajar
+     * pun bisa dipotong runtime di tengah jalan.
+     */
+    vercel: {
+      functions: {
+        maxDuration: 60,
+      },
+    },
+  },
   
   colorMode: {
     classSuffix: '', // Important for Tailwind CSS (uses .dark instead of .dark-mode)
@@ -43,7 +101,9 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['~/assets/css/main.css'],
+  // Urutan penting: CSS bawaan SweetAlert harus lebih dulu supaya blok
+  // ".pivot-swal" di main.css bisa menimpanya tanpa !important.
+  css: ['sweetalert2/dist/sweetalert2.min.css', '~/assets/css/main.css'],
 
   /**
    * Kunci di luar `public` HANYA terbaca di sisi server (server/**). Token

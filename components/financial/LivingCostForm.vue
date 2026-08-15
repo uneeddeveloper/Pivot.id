@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useFinancialStore } from '~/stores/financial'
 
 const financial = useFinancialStore()
+const { confirmAction } = useAlert()
 
 const presets = [
   { label: 'Kos + makan sendiri', value: 2_500_000 },
@@ -33,19 +34,25 @@ watch(totalDetailed, (newTotal) => {
 })
 
 // Fungsi mengganti tab/mode dengan konfirmasi & reset
-function setMode(newMode: 'simple' | 'detailed') {
+async function setMode(newMode: 'simple' | 'detailed') {
   // Jika menekan tombol mode yang sedang aktif, abaikan
   if (inputMode.value === newMode) return
 
   // Cek apakah ada data yang sudah diisi di mode saat ini
   const isSimpleDirty = inputMode.value === 'simple' && financial.livingCost > 0
-  const isDetailedDirty = 
-    inputMode.value === 'detailed' && 
+  const isDetailedDirty =
+    inputMode.value === 'detailed' &&
     detailedExpenses.value.some(e => e.amount > 0 || e.name.trim() !== '')
 
   // Tampilkan peringatan jika form tidak kosong
   if (isSimpleDirty || isDetailedDirty) {
-    const confirmed = window.confirm('Pindah mode input akan menghapus data yang sudah Anda isi. Tetap lanjutkan?')
+    const confirmed = await confirmAction({
+      title: 'Pindah mode input?',
+      text: 'Angka yang sudah kamu isi di mode ini akan dikosongkan. Isian di mode baru dimulai dari nol.',
+      confirmText: 'Ya, pindah',
+      cancelText: 'Tetap di sini',
+      destructive: true,
+    })
     if (!confirmed) return // Batalkan perpindahan jika user memilih 'Batal'
   }
 
@@ -70,10 +77,25 @@ function addExpense() {
   })
 }
 
-// Fungsi menghapus baris rincian
-function removeExpense(id: number) {
+// Fungsi menghapus baris rincian.
+// Baris yang masih kosong dihapus tanpa tanya — tidak ada yang bisa hilang.
+async function removeExpense(id: number) {
+  const target = detailedExpenses.value.find((item) => item.id === id)
+  if (!target) return
+
+  if (target.name.trim() !== '' || target.amount > 0) {
+    const confirmed = await confirmAction({
+      title: `Hapus ${target.name.trim() || 'baris ini'}?`,
+      text: 'Nominalnya akan dikeluarkan dari total biaya hidup.',
+      confirmText: 'Ya, hapus',
+      cancelText: 'Batal',
+      destructive: true,
+    })
+    if (!confirmed) return
+  }
+
   detailedExpenses.value = detailedExpenses.value.filter((item) => item.id !== id)
-  
+
   // Pastikan minimal selalu ada 1 baris tersisa
   if (detailedExpenses.value.length === 0) {
     addExpense()

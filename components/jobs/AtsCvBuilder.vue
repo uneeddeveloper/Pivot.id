@@ -19,6 +19,7 @@ const props = defineProps<{
 
 const career = useCareerStore()
 const catalog = useCatalogStore()
+const { toastSuccess, toastError } = useAlert()
 
 const fullName = ref('')
 const city = ref('')
@@ -182,9 +183,12 @@ async function copyPlainText() {
     await navigator.clipboard.writeText(plainText.value)
     copied.value = true
     setTimeout(() => (copied.value = false), 2500)
+    toastSuccess('Teks CV tersalin ke papan klip.')
   } catch {
     // Clipboard ditolak browser — teksnya tetap terlihat dan bisa diblok manual.
-    errorMessage.value = 'Browser menolak akses papan klip. Sorot teksnya lalu salin manual.'
+    // Toast dipakai di sini karena kotak error formulir ada jauh di kartu atas,
+    // di luar pandangan saat user menekan tombol salin.
+    toastError('Browser menolak akses papan klip. Sorot teksnya lalu salin manual.')
   }
 }
 
