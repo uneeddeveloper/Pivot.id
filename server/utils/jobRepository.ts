@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { Prisma } from '@prisma/client'
 import { prisma } from '../db/prisma'
 import type { JobListing } from '../../types/jobs'
 import type { NormalizedJob } from './jobNormalizer'
@@ -226,61 +227,80 @@ export async function saveSearch(
     const jobIds: bigint[] = []
     const skillLinks: { jobId: bigint; skillId: string }[] = []
 
-    for (const [position, job] of jobs.entries()) {
-      const jobId = await tx.job.upsert({
-        where: { externalId: job.externalId },
-        create: {
-          externalId: job.externalId,
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          isRemote: job.isRemote,
-          employmentType: job.employmentType,
-          salaryMin: job.salaryMin,
-          salaryMax: job.salaryMax,
-          salaryStated: job.salaryStated,
-          seniority: job.seniority,
-          description: job.description,
-          applyUrl: job.applyUrl,
-          source: job.source,
-          postedLabel: job.postedLabel,
-          roleId: identity.roleId,
-          qualityScore: job.qualityScore,
-          redFlags: job.redFlags,
-          isValid: job.isValid,
-        },
-        update: {
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          isRemote: job.isRemote,
-          employmentType: job.employmentType,
-          salaryMin: job.salaryMin,
-          salaryMax: job.salaryMax,
-          salaryStated: job.salaryStated,
-          seniority: job.seniority,
-          description: job.description,
-          applyUrl: job.applyUrl,
-          source: job.source,
-          postedLabel: job.postedLabel,
-          ...(identity.roleId !== null ? { roleId: identity.roleId } : {}),
-          qualityScore: job.qualityScore,
-          redFlags: job.redFlags,
-          isValid: job.isValid,
-          lastSeenAt: new Date(),
-        },
-        select: { id: true },
-      })
+    if (jobs.length > 0) {
+      /**
+       * Dulu tiap lowongan diupsert satu-satu (2 perjalanan bolak-balik ke
+       * TiDB Cloud Singapura per lowongan). Untuk pencarian "seluruh
+       * Indonesia" itu bisa puluhan lowongan × 2 round-trip berurutan —
+       * gampang menembus batas 60 detik function Vercel di tengah transaksi.
+       * Begitu Vercel mematikan function-nya, koneksi transaksi ikut putus
+       * dan permintaan berikutnya jatuh dengan "Transaction not found" di
+       * Prisma. Menaikkan timeout transaksi saja tidak menolong karena batas
+       * 60 detik itu di level function, bukan di level transaksi.
+       *
+       * Solusinya: satu query INSERT ber-banyak-baris dengan
+       * ON DUPLICATE KEY UPDATE, jumlah round-trip-nya tidak lagi tergantung
+       * jumlah lowongan.
+       */
+      const now = new Date()
+      const jobRows = jobs.map((job) =>
+        Prisma.sql`(${job.externalId}, ${job.title}, ${job.company}, ${job.location}, ${job.isRemote}, ${job.employmentType}, ${job.salaryMin}, ${job.salaryMax}, ${job.salaryStated}, ${job.seniority}, ${job.description}, ${job.applyUrl}, ${job.source}, ${job.postedLabel}, ${identity.roleId}, ${job.qualityScore}, ${JSON.stringify(job.redFlags)}, ${job.isValid}, ${now}, ${now})`,
+      )
 
-      await tx.jobSearchResult.upsert({
-        where: { searchId_jobId: { searchId, jobId: jobId.id } },
-        create: { searchId, jobId: jobId.id, position },
-        update: { position },
-      })
+      await tx.$executeRaw`
+        INSERT INTO jobs (
+          external_id, title, company, location, is_remote, employment_type,
+          salary_min, salary_max, salary_stated, seniority, description, apply_url,
+          source, posted_label, role_id, quality_score, red_flags, is_valid,
+          first_seen_at, last_seen_at
+        ) VALUES ${Prisma.join(jobRows)}
+        ON DUPLICATE KEY UPDATE
+          title = VALUES(title),
+          company = VALUES(company),
+          location = VALUES(location),
+          is_remote = VALUES(is_remote),
+          employment_type = VALUES(employment_type),
+          salary_min = VALUES(salary_min),
+          salary_max = VALUES(salary_max),
+          salary_stated = VALUES(salary_stated),
+          seniority = VALUES(seniority),
+          description = VALUES(description),
+          apply_url = VALUES(apply_url),
+          source = VALUES(source),
+          posted_label = VALUES(posted_label),
+          role_id = IF(VALUES(role_id) IS NOT NULL, VALUES(role_id), role_id),
+          quality_score = VALUES(quality_score),
+          red_flags = VALUES(red_flags),
+          is_valid = VALUES(is_valid),
+          last_seen_at = VALUES(last_seen_at)
+      `
 
-      jobIds.push(jobId.id)
-      for (const skillId of job.skills) {
-        skillLinks.push({ jobId: jobId.id, skillId })
+      // Satu SELECT untuk memetakan external_id -> id (bigint auto-increment
+      // hanya ketahuan setelah baris benar-benar ada).
+      const insertedJobs = await tx.job.findMany({
+        where: { externalId: { in: jobs.map((job) => job.externalId) } },
+        select: { id: true, externalId: true },
+      })
+      const idByExternalId = new Map(insertedJobs.map((row) => [row.externalId, row.id]))
+
+      const resultRows: ReturnType<typeof Prisma.sql>[] = []
+      for (const [position, job] of jobs.entries()) {
+        const jobId = idByExternalId.get(job.externalId)
+        if (jobId === undefined) continue // seharusnya tidak terjadi — dijaga demi keamanan tipe
+
+        resultRows.push(Prisma.sql`(${searchId}, ${jobId}, ${position})`)
+        jobIds.push(jobId)
+        for (const skillId of job.skills) {
+          skillLinks.push({ jobId, skillId })
+        }
+      }
+
+      if (resultRows.length > 0) {
+        await tx.$executeRaw`
+          INSERT INTO job_search_results (search_id, job_id, position)
+          VALUES ${Prisma.join(resultRows)}
+          ON DUPLICATE KEY UPDATE position = VALUES(position)
+        `
       }
     }
 
@@ -297,11 +317,10 @@ export async function saveSearch(
   },
   {
     /**
-     * Batas bawaan Prisma 5 detik terlalu pendek di sini: databasenya TiDB
-     * Cloud di Singapura, dan satu batch bisa berisi puluhan lowongan yang
-     * masing-masing masih butuh giliran upsert sendiri. Lewat 5 detik,
-     * transaksinya ditutup dan query berikutnya jatuh dengan "Transaction not
-     * found" — yang muncul di browser sebagai 500 di /api/jobs/search.
+     * Batas bawaan Prisma 5 detik pas-pasan untuk TiDB Cloud di Singapura.
+     * Sejak upsert lowongan dibundel jadi query ber-banyak-baris, transaksi
+     * ini seharusnya beres dalam hitungan detik berapa pun jumlah
+     * lowongannya — angka ini cuma jaring pengaman.
      */
     timeout: 30_000,
     maxWait: 10_000,
