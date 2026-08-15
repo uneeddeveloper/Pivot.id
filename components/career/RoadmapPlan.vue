@@ -65,34 +65,24 @@ function searchLink(resource: { type: string; searchQuery: string }): string {
     <!-- ── Ringkasan & kemajuan ───────────────────────────────────────────── -->
     <BaseCard :title="roadmap.title" :subtitle="roadmap.intro">
       <template #icon>
-        <svg
-          class="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.7"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M3 5h14M3 10h14M3 15h9" />
-        </svg>
+        <Icon name="lucide:list" class="h-5 w-5" />
       </template>
 
       <div class="flex items-baseline justify-between gap-3">
-        <p class="text-sm text-ink-600">
-          <strong class="font-semibold text-ink-900 tabular-nums">{{ completedCount }}</strong>
+        <p class="text-sm text-ink-600 dark:text-ink-400">
+          <strong class="font-semibold text-ink-900 dark:text-cream-50 tabular-nums">{{ completedCount }}</strong>
           dari {{ totalTasks }} tugas selesai
         </p>
-        <p class="text-sm font-semibold tabular-nums text-brand-700">{{ progressPercent }}%</p>
+        <p class="text-sm font-semibold tabular-nums text-brand-600 dark:text-brand-400">{{ progressPercent }}%</p>
       </div>
-      <div class="mt-2 h-2 overflow-hidden rounded-full bg-sage-100">
+      <div class="mt-2 h-2 overflow-hidden rounded-full bg-sage-100 dark:bg-sage-900/40 border border-sage-200 dark:border-sage-800/50">
         <div
-          class="h-full rounded-full bg-sage-500 transition-all duration-500 ease-out"
+          class="h-full rounded-full bg-sage-600 dark:bg-sage-500 transition-all duration-500 ease-out"
           :style="{ width: `${progressPercent}%` }"
         />
       </div>
 
-      <p class="mt-3 text-xs leading-relaxed text-ink-400">
+      <p class="mt-3 text-xs leading-relaxed text-ink-600 dark:text-ink-400">
         Total sekitar {{ Math.round(totalHours) }} jam belajar. Centangnya hidup selama tab ini
         terbuka saja — tidak ada yang dikirim ke server, jadi juga tidak ada yang tersimpan.
       </p>
@@ -104,47 +94,47 @@ function searchLink(resource: { type: string; searchQuery: string }): string {
       :key="week.week"
       :title="`Minggu ${week.week} — ${week.focus}`"
     >
-      <div class="rounded-xl border border-sage-200 bg-sage-50 px-4 py-3">
-        <p class="text-xs font-semibold tracking-widest text-sage-700 uppercase">
+      <div class="rounded-xl border border-sage-200 dark:border-sage-900/60 bg-sage-50/50 dark:bg-sage-950/40 px-4 py-3">
+        <p class="text-[10px] font-semibold tracking-[0.14em] text-sage-600 dark:text-sage-400 uppercase">
           Hasil akhir minggu ini
         </p>
-        <p class="mt-1 text-sm leading-relaxed text-sage-800">{{ week.outcome }}</p>
+        <p class="mt-1 text-sm leading-relaxed text-sage-800 dark:text-sage-300">{{ week.outcome }}</p>
       </div>
 
       <ol class="mt-4 space-y-2.5">
         <li
           v-for="task in week.tasks"
           :key="taskKey(week.week, task.day, task.title)"
-          class="rounded-xl border border-ink-200/70 bg-white/60 px-3 py-2.5 transition"
-          :class="done.has(taskKey(week.week, task.day, task.title)) ? 'opacity-60' : ''"
+          class="rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-3 py-2.5 transition"
+          :class="done.has(taskKey(week.week, task.day, task.title)) ? 'opacity-50' : ''"
         >
           <label class="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
-              class="focus-ring mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 accent-sage-600"
+              class="focus-ring dark:focus-ring-dark mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 dark:border-ink-600 bg-white dark:bg-ink-900 accent-sage-500"
               :checked="done.has(taskKey(week.week, task.day, task.title))"
               @change="toggle(taskKey(week.week, task.day, task.title))"
             />
             <span class="min-w-0 flex-1">
               <span class="flex flex-wrap items-baseline gap-x-2">
                 <span
-                  class="text-sm font-medium text-ink-800"
-                  :class="done.has(taskKey(week.week, task.day, task.title)) ? 'line-through' : ''"
+                  class="text-sm font-medium text-ink-900 dark:text-cream-100"
+                  :class="done.has(taskKey(week.week, task.day, task.title)) ? 'line-through text-ink-500' : ''"
                 >
                   {{ task.title }}
                 </span>
-                <span class="text-[11px] text-ink-400">Hari {{ task.day }}</span>
-                <span class="text-[11px] tabular-nums text-ink-400">
+                <span class="text-[11px] text-ink-600 dark:text-ink-500">Hari {{ task.day }}</span>
+                <span class="text-[11px] tabular-nums text-ink-600 dark:text-ink-500">
                   ± {{ task.estimatedHours }} jam
                 </span>
                 <span
                   v-if="skillLabel(task.skillId)"
-                  class="rounded-full bg-cream-100 px-2 py-0.5 text-[10px] text-ink-600"
+                  class="rounded-full bg-ink-100/50 dark:bg-white/[0.05] border border-ink-200/50 dark:border-white/[0.05] px-2 py-0.5 text-[10px] text-ink-600 dark:text-ink-400"
                 >
                   {{ skillLabel(task.skillId) }}
                 </span>
               </span>
-              <span class="mt-1 block text-sm leading-relaxed text-ink-500">{{ task.detail }}</span>
+              <span class="mt-1 block text-sm leading-relaxed text-ink-600 dark:text-ink-400">{{ task.detail }}</span>
             </span>
           </label>
         </li>
@@ -161,14 +151,14 @@ function searchLink(resource: { type: string; searchQuery: string }): string {
         <li
           v-for="resource in roadmap.resources"
           :key="resource.title"
-          class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-ink-200/70 bg-white/60 px-3 py-2.5"
+          class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-3 py-2.5 transition hover:bg-white dark:hover:bg-white/[0.04]"
         >
           <span class="min-w-0 flex-1">
-            <span class="text-sm font-medium text-ink-800">{{ resource.title }}</span>
-            <span class="ml-2 text-[11px] text-ink-400">{{ resource.type }}</span>
+            <span class="text-sm font-medium text-ink-900 dark:text-cream-100">{{ resource.title }}</span>
+            <span class="ml-2 text-[11px] text-ink-600 dark:text-ink-500">{{ resource.type }}</span>
             <span
               v-if="resource.language && resource.language.toLowerCase() !== 'indonesia'"
-              class="ml-1.5 rounded-full bg-cream-100 px-2 py-0.5 text-[10px] text-ink-600"
+              class="ml-1.5 rounded-full bg-ink-100/50 dark:bg-white/[0.05] border border-ink-200/50 dark:border-white/[0.05] px-2 py-0.5 text-[10px] text-ink-600 dark:text-ink-400"
             >
               {{ resource.language }}
             </span>
@@ -177,7 +167,7 @@ function searchLink(resource: { type: string; searchQuery: string }): string {
             :href="searchLink(resource)"
             target="_blank"
             rel="noopener noreferrer"
-            class="focus-ring shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 transition hover:bg-brand-50"
+            class="focus-ring dark:focus-ring-dark shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-brand-600 dark:text-brand-400 transition hover:bg-brand-50 dark:hover:bg-brand-500/10"
           >
             Cari materinya →
           </a>
@@ -195,16 +185,16 @@ function searchLink(resource: { type: string; searchQuery: string }): string {
         <div
           v-for="project in roadmap.portfolioProjects"
           :key="project.title"
-          class="rounded-xl border border-ink-200/70 bg-white/60 px-4 py-3"
+          class="rounded-xl border border-ink-200/50 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.02] px-4 py-3"
         >
-          <p class="text-sm font-medium text-ink-800">{{ project.title }}</p>
-          <p class="mt-1 text-sm leading-relaxed text-ink-600">{{ project.description }}</p>
+          <p class="text-sm font-medium text-ink-900 dark:text-cream-100">{{ project.title }}</p>
+          <p class="mt-1 text-sm leading-relaxed text-ink-600 dark:text-ink-400">{{ project.description }}</p>
         </div>
       </div>
 
       <template #footer>
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <p class="text-sm leading-relaxed text-ink-600">
+          <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">
             Sudah punya bahan? Susun jadi CV format ATS di langkah berikutnya.
           </p>
           <BaseButton to="/jobs" variant="secondary" size="sm" class="shrink-0">

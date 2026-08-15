@@ -27,13 +27,7 @@ const tone = computed(
     :class="tone"
     :title="formatFullDate(due.date)"
   >
-    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path
-        fill-rule="evenodd"
-        d="M6 2a.75.75 0 0 1 .75.75V4h6.5V2.75a.75.75 0 0 1 1.5 0V4h.25A2.25 2.25 0 0 1 17.25 6.25v9A2.25 2.25 0 0 1 15 17.5H5a2.25 2.25 0 0 1-2.25-2.25v-9A2.25 2.25 0 0 1 5 4h.25V2.75A.75.75 0 0 1 6 2ZM4.25 8v7.25c0 .414.336.75.75.75h10a.75.75 0 0 0 .75-.75V8H4.25Z"
-        clip-rule="evenodd"
-      />
-    </svg>
+    <Icon name="lucide:calendar" class="h-3.5 w-3.5" aria-hidden="true" />
     {{ due.label }}
   </span>
 </template>

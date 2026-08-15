@@ -117,19 +117,28 @@ function resetFilters() {
 </script>
 
 <template>
-  <div class="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
-    <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72">
-      <div class="aurora-blob -top-28 -left-20 h-72 w-72 animate-float bg-cream-300/40" />
-      <div class="aurora-blob -top-16 right-0 h-64 w-64 bg-sage-200/40" />
-    </div>
+  <div class="surface-dark min-h-screen">
+    <!-- Halaman alur: mengikuti dark theme -->
+    <div class="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      <!-- Ambient glow dekorasi -->
+      <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-0 overflow-hidden">
+        <div
+          class="absolute -top-20 right-0 h-64 w-64 rounded-full opacity-[0.15] blur-3xl"
+          style="background: radial-gradient(circle, rgb(247 230 127 / 0.5) 0%, transparent 70%)"
+        />
+        <div
+          class="absolute top-1/3 -left-16 h-48 w-48 rounded-full opacity-[0.08] blur-3xl"
+          style="background: radial-gradient(circle, rgb(169 14 2 / 0.7) 0%, transparent 70%)"
+        />
+      </div>
 
-    <header class="animate-rise flex items-start justify-between gap-6">
+    <header v-reveal class="relative z-10 flex items-start justify-between gap-6">
       <div class="max-w-2xl">
         <StepProgress :current="5" class="max-w-md" />
-        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-ink-900 dark:text-cream-50 sm:text-4xl">
           Penghasilan cepat sambil menunggu
         </h1>
-        <p class="mt-3 text-sm leading-relaxed text-ink-600 sm:text-base">
+        <p class="mt-3 text-sm leading-relaxed text-ink-600 dark:text-ink-400 sm:text-base">
           Lamaran kerja biasanya baru dijawab dua sampai enam minggu. Cicilan tidak menunggu selama
           itu. Di sini kita cari yang bisa menghasilkan uang minggu ini — dengan keterampilan yang
           sudah kamu punya sekarang, bukan yang harus dipelajari dulu.
@@ -141,21 +150,21 @@ function resetFilters() {
     </header>
 
     <!-- ── Kesiapan data ────────────────────────────────────────────────── -->
-    <BaseCard v-if="gigStore.error" tone="soft" class="mt-8">
-      <p class="text-sm leading-relaxed text-ink-700">{{ gigStore.error }}</p>
+    <BaseCard v-reveal v-if="gigStore.error" tone="soft" class="relative z-10 mt-8">
+      <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">{{ gigStore.error }}</p>
     </BaseCard>
 
     <template v-else>
-      <div class="mt-8">
+      <div v-reveal class="relative z-10 mt-8">
         <PrivacyNote>
-          Halaman ini <strong class="font-semibold">tidak mengirim apa pun</strong> ke server selain
+          Halaman ini <strong class="font-semibold text-ink-900 dark:text-cream-50">tidak mengirim apa pun</strong> ke server selain
           permintaan membaca katalog. Angka kebutuhan dan jam kerjamu dihitung sepenuhnya di
           perangkat ini.
         </PrivacyNote>
       </div>
 
       <!-- ── Kebutuhan & waktu ──────────────────────────────────────────── -->
-      <div class="mt-6">
+      <div v-reveal class="mt-6">
         <GigNeedForm
           v-model:need="need"
           v-model:hours-available="hoursAvailable"
@@ -163,11 +172,11 @@ function resetFilters() {
         />
       </div>
 
-      <BaseCard v-if="!hasSkills" tone="soft" class="mt-4">
+      <BaseCard v-reveal v-if="!hasSkills" tone="soft" class="relative z-10 mt-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="min-w-0">
-            <p class="font-semibold text-ink-900">Keterampilanmu belum terdata</p>
-            <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600">
+            <p class="font-semibold text-ink-900 dark:text-cream-50">Keterampilanmu belum terdata</p>
+            <p class="mt-1 max-w-lg text-sm leading-relaxed text-ink-600 dark:text-ink-400">
               Daftarnya tetap bisa dibaca. Tapi begitu langkah 2 selesai, gig yang keterampilannya
               sudah kamu punya akan naik ke urutan atas — dan itu yang paling cepat menghasilkan.
             </p>
@@ -179,15 +188,15 @@ function resetFilters() {
       </BaseCard>
 
       <!-- ── Batasan ────────────────────────────────────────────────────── -->
-      <section class="mt-6" aria-label="Batasi pilihan gig">
+      <section v-reveal class="relative z-10 mt-6" aria-label="Batasi pilihan gig">
         <div class="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            class="focus-ring rounded-full border px-3 py-1.5 text-xs font-medium transition"
+            class="focus-ring dark:focus-ring-dark rounded-full border px-3 py-1.5 text-xs font-medium transition"
             :class="
               category === ''
-                ? 'border-brand-200 bg-brand-50 text-brand-700'
-                : 'border-ink-200 bg-white/70 text-ink-600 hover:border-ink-300'
+                ? 'border-brand-300 dark:border-brand-500/40 bg-brand-50 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300'
+                : 'border-ink-200/50 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.02] text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] hover:bg-white dark:hover:bg-white/[0.05]'
             "
             :aria-pressed="category === ''"
             @click="category = ''"
@@ -198,11 +207,11 @@ function resetFilters() {
             v-for="item in gigStore.categories"
             :key="item"
             type="button"
-            class="focus-ring rounded-full border px-3 py-1.5 text-xs font-medium transition"
+            class="focus-ring dark:focus-ring-dark rounded-full border px-3 py-1.5 text-xs font-medium transition"
             :class="
               category === item
-                ? 'border-brand-200 bg-brand-50 text-brand-700'
-                : 'border-ink-200 bg-white/70 text-ink-600 hover:border-ink-300'
+                ? 'border-brand-300 dark:border-brand-500/40 bg-brand-50 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300'
+                : 'border-ink-200/50 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.02] text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] hover:bg-white dark:hover:bg-white/[0.05]'
             "
             :aria-pressed="category === item"
             @click="category = item"
@@ -210,25 +219,25 @@ function resetFilters() {
             {{ item }}
           </button>
 
-          <span class="mx-1 hidden h-5 w-px bg-ink-200 sm:block" />
+          <span class="mx-1 hidden h-5 w-px bg-ink-200/50 dark:bg-white/[0.08] sm:block" />
 
           <label
-            class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200 bg-white/70 px-3 py-1.5 text-xs text-ink-600"
+            class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200/50 dark:border-white/[0.08] bg-white/80 dark:bg-ink-800/80 px-3 py-1.5 text-xs text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] transition"
           >
             <input
               v-model="noCapitalOnly"
               type="checkbox"
-              class="focus-ring h-3.5 w-3.5 rounded border-ink-300 accent-brand-600"
+              class="focus-ring dark:focus-ring-dark h-3.5 w-3.5 rounded border-ink-300 dark:border-ink-600 bg-white dark:bg-ink-900 accent-brand-600"
             />
             Tanpa modal saja
           </label>
           <label
-            class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200 bg-white/70 px-3 py-1.5 text-xs text-ink-600"
+            class="flex cursor-pointer items-center gap-2 rounded-full border border-ink-200/50 dark:border-white/[0.08] bg-white/80 dark:bg-ink-800/80 px-3 py-1.5 text-xs text-ink-600 dark:text-ink-400 hover:border-ink-300 dark:hover:border-white/[0.15] transition"
           >
             <input
               v-model="remoteOnly"
               type="checkbox"
-              class="focus-ring h-3.5 w-3.5 rounded border-ink-300 accent-brand-600"
+              class="focus-ring dark:focus-ring-dark h-3.5 w-3.5 rounded border-ink-300 dark:border-ink-600 bg-white dark:bg-ink-900 accent-brand-600"
             />
             Bisa dari rumah saja
           </label>
@@ -236,15 +245,15 @@ function resetFilters() {
       </section>
 
       <!-- ── Rencana ────────────────────────────────────────────────────── -->
-      <section v-if="need > 0" class="mt-6">
+      <section v-reveal v-if="need > 0" class="relative z-10 mt-6">
         <GigPlanSummary :plan="plan" />
       </section>
 
-      <BaseCard v-else tone="soft" class="mt-6">
+      <BaseCard v-reveal v-else tone="soft" class="relative z-10 mt-6">
         <div class="flex items-center gap-4">
           <MascotFigure pose="tidur" size="sm" class="hidden sm:block" />
-          <p class="text-sm leading-relaxed text-ink-600">
-            Isi dulu <strong class="font-semibold">berapa yang harus terkumpul</strong> di atas.
+          <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">
+            Isi dulu <strong class="font-semibold text-ink-900 dark:text-cream-50">berapa yang harus terkumpul</strong> di atas.
             Dari angka itu kami susun kombinasi gig yang menutupinya, lengkap dengan berapa jam
             kerjanya. Daftar lengkapnya tetap bisa kamu baca di bawah.
           </p>
@@ -253,20 +262,15 @@ function resetFilters() {
 
       <!-- ── Peringatan penipuan ────────────────────────────────────────── -->
       <div
-        class="mt-6 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 text-sm leading-relaxed text-brand-800"
+        v-reveal
+        class="relative z-10 mt-6 rounded-2xl border border-amber-200/50 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/40 px-5 py-4 text-sm leading-relaxed text-amber-700 dark:text-amber-200/90"
       >
         <p class="flex items-center gap-2 font-semibold">
-          <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path
-              fill-rule="evenodd"
-              d="M8.5 2.7a1.7 1.7 0 0 1 3 0l6 10.6c.65 1.15-.18 2.6-1.5 2.6H4a1.7 1.7 0 0 1-1.5-2.6l6-10.6ZM10 7a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3A.75.75 0 0 1 10 7Zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <Icon name="lucide:triangle-alert" class="h-4 w-4 shrink-0" aria-hidden="true" />
           Satu aturan yang tidak ada pengecualiannya
         </p>
-        <p class="mt-1.5 text-brand-800/90">
-          Pekerjaan yang sah <strong class="font-semibold">tidak pernah meminta uang</strong> dari
+        <p class="mt-1.5 text-amber-600 dark:text-amber-200/70">
+          Pekerjaan yang sah <strong class="font-semibold text-amber-700 dark:text-amber-100">tidak pernah meminta uang</strong> dari
           orang yang mau bekerja. Biaya pendaftaran, biaya seragam, deposit, "biaya administrasi",
           atau paket modal awal yang harus dibeli dulu — semuanya penipuan, sebesar apa pun
           bayaran yang dijanjikan. Orang yang sedang butuh uang justru yang paling sering
@@ -275,13 +279,13 @@ function resetFilters() {
       </div>
 
       <!-- ── Daftar gig ─────────────────────────────────────────────────── -->
-      <section class="mt-10">
+      <section v-reveal class="relative z-10 mt-10">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold tracking-tight text-ink-900">
+            <h2 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-cream-50">
               {{ matches.length }} pekerjaan lepas
             </h2>
-            <p class="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-500">
+            <p class="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-600 dark:text-ink-400">
               Diurutkan dari yang paling bisa kamu mulai hari ini: tanpa modal lebih dulu, lalu
               yang keterampilannya sudah kamu punya, baru bayarannya.
             </p>
@@ -299,11 +303,11 @@ function resetFilters() {
 
         <div
           v-if="readyNowCount > 0"
-          class="mt-5 flex items-center gap-3 rounded-2xl border border-sage-200 bg-sage-50 px-4 py-3"
+          class="mt-5 flex items-center gap-3 rounded-2xl border border-sage-200 dark:border-sage-900/60 bg-sage-50/50 dark:bg-sage-950/40 px-4 py-3"
         >
           <MascotFigure pose="sip" size="xs" class="hidden shrink-0 sm:block" />
-          <p class="text-sm leading-relaxed text-sage-800">
-            <strong class="font-semibold">{{ readyNowCount }} di antaranya</strong>
+          <p class="text-sm leading-relaxed text-sage-800 dark:text-sage-300">
+            <strong class="font-semibold text-sage-700 dark:text-sage-200">{{ readyNowCount }} di antaranya</strong>
             bisa kamu mulai hari ini juga — tanpa modal, dan sebagian besar keterampilannya sudah
             kamu punya.
           </p>
@@ -311,17 +315,19 @@ function resetFilters() {
 
         <div v-if="matches.length" class="mt-5 grid gap-4 lg:grid-cols-2">
           <GigCard
-            v-for="match in matches"
+            v-for="(match, i) in matches"
             :key="match.gig.id"
+            class="stagger-item"
+            :style="{ animationDelay: `${i * 0.1}s` }"
             :match="match"
             :hours-available="hoursAvailable"
           />
         </div>
 
-        <BaseCard v-else tone="soft" class="mt-5">
+        <BaseCard v-else tone="soft" class="mt-5 border border-ink-200/50 dark:border-white/[0.08] border-dashed">
           <div class="flex items-center gap-4">
             <MascotFigure pose="tidur" size="sm" class="hidden sm:block" />
-            <p class="text-sm leading-relaxed text-ink-600">
+            <p class="text-sm leading-relaxed text-ink-600 dark:text-ink-400">
               Tidak ada gig yang cocok dengan batasan yang kamu pilih. Coba longgarkan salah
               satunya — mengizinkan pekerjaan di luar rumah biasanya membuka paling banyak pilihan.
             </p>
@@ -329,7 +335,7 @@ function resetFilters() {
         </BaseCard>
       </section>
 
-      <p class="mt-8 max-w-3xl text-xs leading-relaxed text-ink-400">
+      <p v-reveal class="relative z-10 mt-8 max-w-3xl text-xs leading-relaxed text-ink-600 dark:text-ink-500">
         Rentang bayaran di halaman ini adalah tarif pasar untuk pemula dan bisa berbeda di kotamu.
         Pakai sebagai ancar-ancar saat menentukan harga, bukan sebagai janji. Micro-gig menutup
         lubang jangka pendek — yang membuatmu benar-benar berdiri tetap pekerjaan dengan
@@ -337,9 +343,10 @@ function resetFilters() {
       </p>
     </template>
 
-    <div class="mt-10 flex flex-wrap gap-3">
+    <div class="relative z-10 mt-10 flex flex-wrap gap-3">
       <BaseButton to="/jobs" variant="ghost">← Kembali ke lowongan & CV</BaseButton>
       <BaseButton to="/audit" variant="quiet">Perbarui angka di langkah 1</BaseButton>
     </div>
+  </div>
   </div>
 </template>

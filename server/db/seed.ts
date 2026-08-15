@@ -1,184 +1,176 @@
 /**
  * Mengisi tabel katalog (`skills`, `roles`, `gigs`, dan relasinya) dari
- * `catalog-seed.ts` dan `gig-seed.ts`.
+ * `catalog-seed.ts` dan `gig-seed.ts` menggunakan Prisma Client.
  *
  *   npm run db:seed
  *
  * Memakai upsert, jadi aman dijalankan ulang: baris yang sudah ada diperbarui,
- * bukan diduplikasi. Perubahan yang kamu buat langsung di database akan
- * tertimpa oleh nilai benih untuk id yang sama — itu memang disengaja supaya
- * `catalog-seed.ts` tetap bisa dipakai sebagai titik pulih.
+ * bukan diduplikasi.
  */
 
-import mysql from 'mysql2/promise'
-import { mysqlConfigFromEnv } from './config'
+import { PrismaClient } from '@prisma/client'
 import { ROLE_SEED, SKILL_SEED } from './catalog-seed'
 import { GIG_SEED } from './gig-seed'
 
+const prisma = new PrismaClient()
+
 async function main() {
-  const config = mysqlConfigFromEnv()
-  const conn = await mysql.createConnection({
-    host: config.host,
-    port: config.port,
-    user: config.user,
-    password: config.password,
-    database: config.database,
-  })
+  // ── Keterampilan ──────────────────────────────────────────────────────────
+  for (const [index, skill] of SKILL_SEED.entries()) {
+    await prisma.skill.upsert({
+      where: { id: skill.id },
+      create: {
+        id: skill.id,
+        label: skill.label,
+        category: skill.category,
+        sortOrder: index,
+      },
+      update: {
+        label: skill.label,
+        category: skill.category,
+        sortOrder: index,
+      },
+    })
 
-  await conn.beginTransaction()
-
-  try {
-    // ── Keterampilan ────────────────────────────────────────────────────────
-    for (const [index, skill] of SKILL_SEED.entries()) {
-      await conn.execute(
-        `INSERT INTO skills (id, label, category, sort_order)
-         VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           label = VALUES(label),
-           category = VALUES(category),
-           sort_order = VALUES(sort_order)`,
-        [skill.id, skill.label, skill.category, index],
-      )
-
-      // Alias ditulis ulang seluruhnya supaya alias yang dihapus dari benih
-      // ikut hilang dari database — kalau tidak, kata kunci lama terus
-      // memicu deteksi palsu saat membaca CV.
-      await conn.execute('DELETE FROM skill_aliases WHERE skill_id = ?', [skill.id])
-      for (const alias of skill.aliases) {
-        await conn.execute(
-          'INSERT IGNORE INTO skill_aliases (skill_id, alias) VALUES (?, ?)',
-          [skill.id, alias.toLowerCase()],
-        )
-      }
+    // Alias ditulis ulang seluruhnya supaya alias yang dihapus dari benih
+    // ikut hilang dari database.
+    await prisma.skillAlias.deleteMany({ where: { skillId: skill.id } })
+    if (skill.aliases.length > 0) {
+      await prisma.skillAlias.createMany({
+        data: skill.aliases.map((alias) => ({
+          skillId: skill.id,
+          alias: alias.toLowerCase(),
+        })),
+        skipDuplicates: true,
+      })
     }
-    console.log(`✓ ${SKILL_SEED.length} keterampilan`)
-
-    // ── Peran kerja ─────────────────────────────────────────────────────────
-    for (const [index, role] of ROLE_SEED.entries()) {
-      await conn.execute(
-        `INSERT INTO roles (
-           id, title, field, salary_min, salary_typical,
-           entry_friendly, remote_friendly, time_to_entry,
-           description, search_query, sort_order
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           title = VALUES(title),
-           field = VALUES(field),
-           salary_min = VALUES(salary_min),
-           salary_typical = VALUES(salary_typical),
-           entry_friendly = VALUES(entry_friendly),
-           remote_friendly = VALUES(remote_friendly),
-           time_to_entry = VALUES(time_to_entry),
-           description = VALUES(description),
-           search_query = VALUES(search_query),
-           sort_order = VALUES(sort_order)`,
-        [
-          role.id,
-          role.title,
-          role.field,
-          role.salaryMin,
-          role.salaryTypical,
-          role.entryFriendly ? 1 : 0,
-          role.remoteFriendly ? 1 : 0,
-          role.timeToEntry,
-          role.description,
-          role.searchQuery,
-          index,
-        ],
-      )
-
-      await conn.execute('DELETE FROM role_skills WHERE role_id = ?', [role.id])
-      for (const [order, skillId] of role.skills.entries()) {
-        await conn.execute(
-          'INSERT IGNORE INTO role_skills (role_id, skill_id, sort_order) VALUES (?, ?, ?)',
-          [role.id, skillId, order],
-        )
-      }
-    }
-    console.log(`✓ ${ROLE_SEED.length} peran kerja`)
-
-    // ── Micro-gig (langkah 5) ───────────────────────────────────────────────
-    for (const [index, gig] of GIG_SEED.entries()) {
-      await conn.execute(
-        `INSERT INTO gigs (
-           id, title, category, earn_min, earn_max, unit, hours_per_unit,
-           max_units_per_week, days_to_first_pay, startup_cost, remote_friendly,
-           description, how_to_start, caution, sort_order
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           title = VALUES(title),
-           category = VALUES(category),
-           earn_min = VALUES(earn_min),
-           earn_max = VALUES(earn_max),
-           unit = VALUES(unit),
-           hours_per_unit = VALUES(hours_per_unit),
-           max_units_per_week = VALUES(max_units_per_week),
-           days_to_first_pay = VALUES(days_to_first_pay),
-           startup_cost = VALUES(startup_cost),
-           remote_friendly = VALUES(remote_friendly),
-           description = VALUES(description),
-           how_to_start = VALUES(how_to_start),
-           caution = VALUES(caution),
-           sort_order = VALUES(sort_order)`,
-        [
-          gig.id,
-          gig.title,
-          gig.category,
-          gig.earnMin,
-          gig.earnMax,
-          gig.unit,
-          gig.hoursPerUnit,
-          gig.maxUnitsPerWeek,
-          gig.daysToFirstPay,
-          gig.startupCost,
-          gig.remoteFriendly ? 1 : 0,
-          gig.description,
-          gig.howToStart,
-          gig.caution,
-          index,
-        ],
-      )
-
-      await conn.execute('DELETE FROM gig_skills WHERE gig_id = ?', [gig.id])
-      for (const [order, skillId] of gig.skills.entries()) {
-        await conn.execute(
-          'INSERT IGNORE INTO gig_skills (gig_id, skill_id, sort_order) VALUES (?, ?, ?)',
-          [gig.id, skillId, order],
-        )
-      }
-
-      // Kanal ditulis ulang seluruhnya, alasannya sama dengan alias skill:
-      // kanal yang dihapus dari benih tidak boleh tertinggal di database dan
-      // mengirim user ke platform yang sudah tidak dipakai.
-      await conn.execute('DELETE FROM gig_channels WHERE gig_id = ?', [gig.id])
-      for (const [order, channel] of gig.channels.entries()) {
-        await conn.execute(
-          `INSERT INTO gig_channels (gig_id, name, search_query, kind, sort_order)
-           VALUES (?, ?, ?, ?, ?)`,
-          [gig.id, channel.name, channel.searchQuery, channel.kind, order],
-        )
-      }
-    }
-    console.log(`✓ ${GIG_SEED.length} micro-gig`)
-
-    await conn.commit()
-  } catch (error) {
-    await conn.rollback()
-    throw error
-  } finally {
-    await conn.end()
   }
+  console.log(`✓ ${SKILL_SEED.length} keterampilan`)
+
+  // ── Peran kerja ───────────────────────────────────────────────────────────
+  for (const [index, role] of ROLE_SEED.entries()) {
+    await prisma.role.upsert({
+      where: { id: role.id },
+      create: {
+        id: role.id,
+        title: role.title,
+        field: role.field,
+        salaryMin: role.salaryMin,
+        salaryTypical: role.salaryTypical,
+        entryFriendly: role.entryFriendly,
+        remoteFriendly: role.remoteFriendly,
+        timeToEntry: role.timeToEntry,
+        description: role.description,
+        searchQuery: role.searchQuery,
+        sortOrder: index,
+      },
+      update: {
+        title: role.title,
+        field: role.field,
+        salaryMin: role.salaryMin,
+        salaryTypical: role.salaryTypical,
+        entryFriendly: role.entryFriendly,
+        remoteFriendly: role.remoteFriendly,
+        timeToEntry: role.timeToEntry,
+        description: role.description,
+        searchQuery: role.searchQuery,
+        sortOrder: index,
+      },
+    })
+
+    // Relasi skills ditulis ulang seluruhnya
+    await prisma.roleSkill.deleteMany({ where: { roleId: role.id } })
+    for (const [order, skillId] of role.skills.entries()) {
+      await prisma.roleSkill.upsert({
+        where: { roleId_skillId: { roleId: role.id, skillId } },
+        create: { roleId: role.id, skillId, sortOrder: order },
+        update: { sortOrder: order },
+      })
+    }
+  }
+  console.log(`✓ ${ROLE_SEED.length} peran kerja`)
+
+  // ── Micro-gig ─────────────────────────────────────────────────────────────
+  for (const [index, gig] of GIG_SEED.entries()) {
+    await prisma.gig.upsert({
+      where: { id: gig.id },
+      create: {
+        id: gig.id,
+        title: gig.title,
+        category: gig.category,
+        earnMin: gig.earnMin,
+        earnMax: gig.earnMax,
+        unit: gig.unit,
+        hoursPerUnit: gig.hoursPerUnit,
+        maxUnitsPerWeek: gig.maxUnitsPerWeek,
+        daysToFirstPay: gig.daysToFirstPay,
+        startupCost: gig.startupCost,
+        remoteFriendly: gig.remoteFriendly,
+        description: gig.description,
+        howToStart: gig.howToStart,
+        caution: gig.caution,
+        sortOrder: index,
+      },
+      update: {
+        title: gig.title,
+        category: gig.category,
+        earnMin: gig.earnMin,
+        earnMax: gig.earnMax,
+        unit: gig.unit,
+        hoursPerUnit: gig.hoursPerUnit,
+        maxUnitsPerWeek: gig.maxUnitsPerWeek,
+        daysToFirstPay: gig.daysToFirstPay,
+        startupCost: gig.startupCost,
+        remoteFriendly: gig.remoteFriendly,
+        description: gig.description,
+        howToStart: gig.howToStart,
+        caution: gig.caution,
+        sortOrder: index,
+      },
+    })
+
+    // Skills & channels ditulis ulang seluruhnya
+    await prisma.gigSkill.deleteMany({ where: { gigId: gig.id } })
+    for (const [order, skillId] of gig.skills.entries()) {
+      await prisma.gigSkill.upsert({
+        where: { gigId_skillId: { gigId: gig.id, skillId } },
+        create: { gigId: gig.id, skillId, sortOrder: order },
+        update: { sortOrder: order },
+      })
+    }
+
+    await prisma.gigChannel.deleteMany({ where: { gigId: gig.id } })
+    for (const [order, channel] of gig.channels.entries()) {
+      await prisma.gigChannel.create({
+        data: {
+          gigId: gig.id,
+          name: channel.name,
+          searchQuery: channel.searchQuery,
+          kind: channel.kind,
+          sortOrder: order,
+        },
+      })
+    }
+  }
+  console.log(`✓ ${GIG_SEED.length} micro-gig`)
 
   console.log('\nKatalog siap. Jalankan `npm run dev` lalu buka /skill-gap.')
 }
 
-main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error)
-  console.error('\n✗ Seed gagal:', message)
+main()
+  .catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('\n✗ Seed gagal:', message)
 
-  if (message.includes("doesn't exist")) {
-    console.error('\n  Tabelnya belum dibuat. Jalankan dulu: npm run db:migrate')
-  }
+    if (message.includes("Can't reach database") || message.includes('ECONNREFUSED')) {
+      console.error(
+        '\n  Database tidak bisa dihubungi.\n' +
+          '  Pastikan DATABASE_URL di file .env sudah benar dan TiDB Cloud / MySQL berjalan.',
+      )
+    } else if (message.includes("doesn't exist") || message.includes('does not exist')) {
+      console.error('\n  Tabelnya belum dibuat. Jalankan dulu: npm run db:push')
+    }
 
-  process.exit(1)
-})
+    process.exit(1)
+  })
+  .finally(() => prisma.$disconnect())

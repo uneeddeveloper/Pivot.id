@@ -1,0 +1,331 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Pivot — Prisma Schema
+//
+// Mencerminkan schema.sql yang sebelumnya dipakai secara langsung.
+// Compatible dengan MySQL 8 dan TiDB Cloud (MySQL-compatible).
+//
+// Untuk deploy ke TiDB Cloud:
+//   DATABASE_URL="mysql://user:pass@gateway.tidbcloud.com:4000/db?sslaccept=strict"
+//
+// Commands:
+//   npx prisma generate          — regenerate Prisma Client setelah ubah schema
+//   npx prisma db push           — sync schema ke database (dev/staging)
+//   npx prisma migrate deploy    — terapkan migrasi ke production
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Katalog keterampilan ─────────────────────────────────────────────────────
+
+model Skill {
+  id         String       @id @db.VarChar(64)
+  label      String       @db.VarChar(120)
+  category   String       @db.VarChar(64)
+  sortOrder  Int          @default(0) @map("sort_order")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  aliases    SkillAlias[]
+  roleSkills RoleSkill[]
+  gigSkills  GigSkill[]
+  jobSkills  JobSkill[]
+
+  @@index([category, sortOrder], map: "idx_skills_category")
+  @@map("skills")
+}
+
+// Kata kunci alternatif untuk mendeteksi keterampilan dari teks CV.
+model SkillAlias {
+  id      Int    @id @default(autoincrement())
+  skillId String @map("skill_id") @db.VarChar(64)
+  alias   String @db.VarChar(120)
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade, map: "fk_alias_skill")
+
+  @@unique([skillId, alias], map: "uq_skill_alias")
+  @@map("skill_aliases")
+}
+
+// ── Katalog peran kerja ──────────────────────────────────────────────────────
+
+model Role {
+  id             String      @id @db.VarChar(64)
+  title          String      @db.VarChar(160)
+  field          String      @db.VarChar(64)
+  /// Rupiah per bulan. BigInt karena nominal gaji tahunan bisa lewat batas Int.
+  salaryMin      BigInt      @default(0) @map("salary_min")
+  salaryTypical  BigInt      @default(0) @map("salary_typical")
+  entryFriendly  Boolean     @default(false) @map("entry_friendly")
+  remoteFriendly Boolean     @default(false) @map("remote_friendly")
+  timeToEntry    String      @default("") @map("time_to_entry") @db.VarChar(64)
+  description    String      @db.Text
+  /// Kata kunci yang dikirim ke Google Jobs untuk peran ini.
+  searchQuery    String      @default("") @map("search_query") @db.VarChar(255)
+  sortOrder      Int         @default(0) @map("sort_order")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @default(now()) @updatedAt @map("updated_at")
+
+  skills     RoleSkill[]
+  jobs       Job[]
+  jobSearches JobSearch[]
+
+  @@index([field], map: "idx_roles_field")
+  @@index([salaryTypical], map: "idx_roles_salary")
+  @@map("roles")
+}
+
+model RoleSkill {
+  roleId    String @map("role_id") @db.VarChar(64)
+  skillId   String @map("skill_id") @db.VarChar(64)
+  sortOrder Int    @default(0) @map("sort_order")
+
+  role  Role  @relation(fields: [roleId], references: [id], onDelete: Cascade, map: "fk_rs_role")
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade, map: "fk_rs_skill")
+
+  @@id([roleId, skillId])
+  @@index([skillId], map: "idx_role_skills_skill")
+  @@map("role_skills")
+}
+
+// ── Katalog micro-gig ────────────────────────────────────────────────────────
+
+// Pekerjaan lepas berskala kecil yang bisa menghasilkan dalam hitungan hari.
+model Gig {
+  id              String      @id @db.VarChar(64)
+  title           String      @db.VarChar(160)
+  category        String      @db.VarChar(64)
+  /// Rupiah per satu satuan pekerjaan.
+  earnMin         BigInt      @default(0) @map("earn_min")
+  earnMax         BigInt      @default(0) @map("earn_max")
+  /// Satuan bayaran, mis. 'per pesanan', 'per hari', 'per artikel'.
+  unit            String      @default("per pesanan") @db.VarChar(48)
+  hoursPerUnit    Decimal     @default(1) @map("hours_per_unit") @db.Decimal(5, 2)
+  maxUnitsPerWeek Int         @default(5) @map("max_units_per_week")
+  /// Berapa hari sampai uangnya benar-benar diterima.
+  daysToFirstPay  Int         @default(7) @map("days_to_first_pay")
+  /// Modal awal. 0 = bisa mulai tanpa uang sama sekali.
+  startupCost     BigInt      @default(0) @map("startup_cost")
+  remoteFriendly  Boolean     @default(false) @map("remote_friendly")
+  description     String      @db.Text
+  howToStart      String      @map("how_to_start") @db.Text
+  caution         String      @db.Text
+  sortOrder       Int         @default(0) @map("sort_order")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at")
+
+  skills   GigSkill[]
+  channels GigChannel[]
+
+  @@index([category, sortOrder], map: "idx_gigs_category")
+  @@map("gigs")
+}
+
+model GigSkill {
+  gigId     String @map("gig_id") @db.VarChar(64)
+  skillId   String @map("skill_id") @db.VarChar(64)
+  sortOrder Int    @default(0) @map("sort_order")
+
+  gig   Gig   @relation(fields: [gigId], references: [id], onDelete: Cascade, map: "fk_gs_gig")
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade, map: "fk_gs_skill")
+
+  @@id([gigId, skillId])
+  @@index([skillId], map: "idx_gig_skills_skill")
+  @@map("gig_skills")
+}
+
+// Tempat mencari pekerjaannya. Yang disimpan kata kunci pencarian, BUKAN URL.
+model GigChannel {
+  id          Int    @id @default(autoincrement())
+  gigId       String @map("gig_id") @db.VarChar(64)
+  name        String @db.VarChar(120)
+  searchQuery String @map("search_query") @db.VarChar(200)
+  /// 'platform' | 'komunitas' | 'langsung'
+  kind        String @default("platform") @db.VarChar(24)
+  sortOrder   Int    @default(0) @map("sort_order")
+
+  gig Gig @relation(fields: [gigId], references: [id], onDelete: Cascade, map: "fk_gc_gig")
+
+  @@unique([gigId, name], map: "uq_gig_channel")
+  @@map("gig_channels")
+}
+
+// ── Lowongan ─────────────────────────────────────────────────────────────────
+
+// Satu baris per kombinasi kueri+lokasi. Menahan pemanggilan SerpApi agar
+// kuota bulanan tidak habis oleh pencarian yang sama.
+model JobSearch {
+  id         BigInt    @id @default(autoincrement())
+  /// SHA-256 dari `query|location|remote_only` — pembeda cache yang sebenarnya.
+  queryHash  String    @unique @map("query_hash") @db.Char(64)
+  query      String    @db.VarChar(255)
+  location   String    @default("") @db.VarChar(120)
+  remoteOnly Boolean   @default(false) @map("remote_only")
+  roleId     String?   @map("role_id") @db.VarChar(64)
+  provider   String    @default("serpapi_google_jobs") @db.VarChar(32)
+  rawCount   Int       @default(0) @map("raw_count")
+  keptCount  Int       @default(0) @map("kept_count")
+  fetchedAt  DateTime  @default(now()) @map("fetched_at")
+  expiresAt  DateTime  @map("expires_at")
+
+  role    Role?               @relation(fields: [roleId], references: [id], onDelete: SetNull, map: "fk_search_role")
+  results JobSearchResult[]
+
+  @@index([expiresAt], map: "idx_searches_expiry")
+  @@map("job_searches")
+}
+
+model Job {
+  id             BigInt    @id @default(autoincrement())
+  /// ID stabil dari Google Jobs. Kalau provider tidak memberikannya, seeder
+  /// memakai hash dari judul+perusahaan+lokasi.
+  externalId     String    @unique @map("external_id") @db.VarChar(191)
+  title          String    @db.VarChar(255)
+  company        String    @default("") @db.VarChar(255)
+  location       String    @default("") @db.VarChar(191)
+  isRemote       Boolean   @default(false) @map("is_remote")
+  /// 'full_time' | 'part_time' | 'contract' | 'internship' | 'freelance' | ''
+  employmentType String    @default("") @map("employment_type") @db.VarChar(32)
+  /// Rentang gaji BULANAN dalam Rupiah. 0 = tidak disebutkan.
+  salaryMin      BigInt    @default(0) @map("salary_min")
+  salaryMax      BigInt    @default(0) @map("salary_max")
+  /// Apakah angka gaji disebut eksplisit di lowongan (true) atau ditaksir LLM (false).
+  salaryStated   Boolean   @default(false) @map("salary_stated")
+  seniority      String    @default("") @db.VarChar(32)
+  description    String?   @db.MediumText
+  applyUrl       String?   @map("apply_url") @db.Text
+  /// Papan lowongan asal, mis. 'Glints', 'JobStreet', 'LinkedIn'.
+  source         String    @default("") @db.VarChar(120)
+  postedAt       DateTime? @map("posted_at") @db.Date
+  postedLabel    String    @default("") @map("posted_label") @db.VarChar(64)
+  roleId         String?   @map("role_id") @db.VarChar(64)
+  /// 0..100 dari LLM: seberapa lengkap & meyakinkan lowongan ini.
+  qualityScore   Int       @default(0) @map("quality_score") @db.TinyInt
+  /// Array alasan lowongan dicurigai, mis. ["minta biaya di muka"].
+  redFlags       Json?     @map("red_flags")
+  /// true = lolos validasi LLM.
+  isValid        Boolean   @default(true) @map("is_valid")
+  firstSeenAt    DateTime  @default(now()) @map("first_seen_at")
+  lastSeenAt     DateTime  @default(now()) @updatedAt @map("last_seen_at")
+
+  role    Role?             @relation(fields: [roleId], references: [id], onDelete: SetNull, map: "fk_job_role")
+  skills  JobSkill[]
+  results JobSearchResult[]
+
+  @@index([roleId], map: "idx_jobs_role")
+  @@index([salaryMin], map: "idx_jobs_salary")
+  @@index([isValid, lastSeenAt], map: "idx_jobs_valid")
+  @@map("jobs")
+}
+
+// Lowongan yang sama bisa muncul di beberapa pencarian.
+model JobSearchResult {
+  searchId BigInt @map("search_id")
+  jobId    BigInt @map("job_id")
+  position Int    @default(0)
+
+  search JobSearch @relation(fields: [searchId], references: [id], onDelete: Cascade, map: "fk_jsr_search")
+  job    Job       @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "fk_jsr_job")
+
+  @@id([searchId, jobId])
+  @@index([jobId], map: "idx_jsr_job")
+  @@map("job_search_results")
+}
+
+// Keterampilan yang diminta lowongan, hasil pemetaan LLM ke katalog `skills`.
+model JobSkill {
+  jobId   BigInt @map("job_id")
+  skillId String @map("skill_id") @db.VarChar(64)
+
+  job   Job   @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "fk_js_job")
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade, map: "fk_js_skill")
+
+  @@id([jobId, skillId])
+  @@index([skillId], map: "idx_job_skills_skill")
+  @@map("job_skills")
+}
+
+// ── Cache LLM ────────────────────────────────────────────────────────────────
+
+// Menyimpan jawaban LLM supaya prompt yang identik tidak dibayar dua kali.
+model LlmCache {
+  cacheKey  String   @id @map("cache_key") @db.Char(64)
+  purpose   String   @db.VarChar(48)
+  model     String   @db.VarChar(120)
+  response  String   @db.MediumText
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([expiresAt], map: "idx_llm_cache_expiry")
+  @@map("llm_cache")
+}
+
+// ── Auth & Users ─────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid()) @db.VarChar(64)
+  name          String?   @db.VarChar(120)
+  email         String?   @unique @db.VarChar(191)
+  emailVerified DateTime? @map("email_verified")
+  image         String?   @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts      Account[]
+  sessions      Session[]
+  visitorLogs   VisitorLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid()) @db.VarChar(64)
+  userId            String  @map("user_id") @db.VarChar(64)
+  type              String  @db.VarChar(120)
+  provider          String  @db.VarChar(120)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(191)
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(120)
+  scope             String? @db.VarChar(120)
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(120)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_account_user")
+
+  @@unique([provider, providerAccountId], map: "uq_account_provider")
+  @@index([userId], map: "idx_account_user_id")
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid()) @db.VarChar(64)
+  sessionToken String   @unique @map("session_token") @db.VarChar(191)
+  userId       String   @map("user_id") @db.VarChar(64)
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_session_user")
+
+  @@index([userId], map: "idx_session_user_id")
+  @@map("sessions")
+}
+
+model VisitorLog {
+  id        String   @id @default(cuid()) @db.VarChar(64)
+  userId    String   @map("user_id") @db.VarChar(64)
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_visitorlog_user")
+
+  @@index([userId], map: "idx_visitorlog_user_id")
+  @@map("visitor_logs")
+}

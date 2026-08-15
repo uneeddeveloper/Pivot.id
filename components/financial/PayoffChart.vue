@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useFinancialStore } from '~/stores/financial'
 import type { MonthSnapshot, PayoffMilestone } from '~/types/financial'
 
 /**
@@ -29,6 +30,18 @@ interface Point {
   x: number
   y: number
 }
+
+const financial = useFinancialStore() // 2. Inisialisasi store
+
+/** 3. Tambahkan pengecekan tipe utang */
+const hasOnlySimplifiedDebts = computed(() =>
+  financial.validDebts.length > 0 &&
+  financial.validDebts.every((d) => d.calcMode === 'simplified')
+)
+
+const hasSimplifiedDebts = computed(() =>
+  financial.validDebts.some((d) => d.calcMode === 'simplified')
+)
 
 /** Jumlah sela antar garis bantu horizontal. */
 const Y_INTERVALS = 4
@@ -182,20 +195,20 @@ const summaryLabel = computed(
 <template>
   <div>
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <p class="flex items-center gap-4 text-xs text-ink-500">
+      <p class="flex items-center gap-4 text-xs text-ink-600 dark:text-ink-500">
         <span class="flex items-center gap-1.5">
           <span class="h-0.5 w-4 rounded-full bg-brand-600" />
           Sisa utang
         </span>
         <span class="flex items-center gap-1.5">
-          <span class="h-2.5 w-2.5 rounded-full bg-sage-600 ring-2 ring-white" />
+          <span class="h-2.5 w-2.5 rounded-full bg-sage-600 ring-2 ring-white dark:ring-ink-900" />
           Satu utang lunas
         </span>
       </p>
 
       <button
         type="button"
-        class="focus-ring rounded-lg px-2 py-1 text-xs font-medium text-ink-500 transition hover:bg-ink-100 hover:text-ink-700"
+        class="focus-ring dark:focus-ring-dark rounded-lg px-2 py-1 text-xs font-medium text-ink-600 dark:text-ink-400 transition hover:bg-white dark:hover:bg-white/[0.05] hover:text-ink-900 dark:hover:text-ink-300"
         :aria-pressed="showTable"
         @click="showTable = !showTable"
       >
@@ -211,7 +224,7 @@ const summaryLabel = computed(
           <span
             v-for="tick in yTicks"
             :key="tick.value"
-            class="absolute right-2 -translate-y-1/2 text-[10px] tabular-nums text-ink-400"
+            class="absolute right-2 -translate-y-1/2 text-[10px] tabular-nums text-ink-500 dark:text-ink-400"
             :style="{ top: `${tick.y}%` }"
           >
             {{ formatCompactIDR(tick.value) }}
@@ -220,7 +233,7 @@ const summaryLabel = computed(
 
         <div
           ref="plotRef"
-          class="focus-ring relative h-56 w-full touch-pan-y rounded-lg sm:h-64"
+          class="focus-ring dark:focus-ring-dark relative h-56 w-full touch-pan-y rounded-lg sm:h-64"
           tabindex="0"
           role="img"
           :aria-label="summaryLabel"
@@ -251,7 +264,8 @@ const summaryLabel = computed(
               :y1="tick.y"
               x2="100"
               :y2="tick.y"
-              stroke="var(--color-ink-200)"
+              stroke="currentColor"
+              class="text-ink-200/50 dark:text-white/[0.08]"
               stroke-width="1"
               vector-effect="non-scaling-stroke"
             />
@@ -274,7 +288,8 @@ const summaryLabel = computed(
               y1="0"
               :x2="activePoint.x"
               y2="100"
-              stroke="var(--color-ink-400)"
+              stroke="currentColor"
+              class="text-ink-300/80 dark:text-white/[0.4]"
               stroke-width="1"
               vector-effect="non-scaling-stroke"
             />
@@ -284,7 +299,7 @@ const summaryLabel = computed(
           <span
             v-for="milestone in milestonePoints"
             :key="milestone.month"
-            class="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sage-600 ring-2 ring-white"
+            class="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sage-500 ring-2 ring-white dark:ring-ink-900"
             :style="{ left: `${milestone.x}%`, top: `${milestone.y}%` }"
             :title="`Bulan ke-${milestone.month}: ${milestone.names.join(', ')} lunas`"
           />
@@ -292,30 +307,41 @@ const summaryLabel = computed(
           <!-- Titik hover -->
           <span
             v-if="activePoint"
-            class="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-600 ring-2 ring-white"
+            class="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-ink-900"
             :style="{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }"
           />
 
           <!-- Tooltip -->
           <div
             v-if="activePoint"
-            class="pointer-events-none absolute z-10 w-max max-w-56 rounded-xl border border-ink-200 bg-white/95 px-3 py-2 shadow-lift backdrop-blur-sm"
+            class="pointer-events-none absolute z-10 w-max max-w-56 rounded-xl border border-ink-200/50 dark:border-white/[0.08] bg-white/95 dark:bg-ink-800 px-3 py-2 shadow-lift backdrop-blur-sm"
             :style="{
               left: `${activePoint.x}%`,
               top: `${Math.min(activePoint.y, 70)}%`,
               transform: `${tooltipTransform} translateY(-115%)`,
             }"
           >
-            <p class="text-[11px] font-medium text-ink-500">
+            <p class="text-[11px] font-medium text-ink-600 dark:text-ink-400">
               {{ activePoint.month === 0 ? 'Sebelum mulai' : `Bulan ke-${activePoint.month}` }}
             </p>
-            <p class="mt-0.5 text-sm font-semibold tabular-nums text-ink-900">
+            <p class="mt-0.5 text-sm font-semibold tabular-nums text-ink-900 dark:text-cream-50">
               {{ formatIDR(activePoint.remaining) }}
             </p>
-            <p v-if="activePoint.month > 0" class="mt-1 text-[11px] tabular-nums text-ink-500">
-              Bunga terkumpul {{ formatIDR(activePoint.cumulativeInterest) }}
-            </p>
-            <p v-if="activePoint.cleared.length" class="mt-1 text-[11px] font-medium text-sage-700">
+            
+            <!-- PENYESUAIAN BUNGA TOOLTIP -->
+            <div v-if="activePoint.month > 0" class="mt-1 text-[11px] tabular-nums text-ink-600 dark:text-ink-400">
+              <template v-if="hasOnlySimplifiedDebts">
+                Bunga: Sudah All-in
+              </template>
+              <template v-else>
+                Bunga terkumpul {{ formatIDR(activePoint.cumulativeInterest) }}
+                <span v-if="hasSimplifiedDebts" class="block text-[9px] leading-tight text-ink-500 mt-0.5">
+                  *di luar paylater
+                </span>
+              </template>
+            </div>
+            
+            <p v-if="activePoint.cleared.length" class="mt-1 text-[11px] font-medium text-sage-600 dark:text-sage-300">
               {{ activePoint.cleared.join(', ') }} lunas
             </p>
           </div>
@@ -326,7 +352,7 @@ const summaryLabel = computed(
           <span
             v-for="tick in xTicks"
             :key="tick.month"
-            class="absolute top-1 -translate-x-1/2 text-[10px] tabular-nums text-ink-400"
+            class="absolute top-1 -translate-x-1/2 text-[10px] tabular-nums text-ink-500 dark:text-ink-400"
             :style="{ left: `${tick.x}%` }"
           >
             {{ tick.month }}
@@ -334,13 +360,13 @@ const summaryLabel = computed(
         </div>
       </div>
 
-      <p class="mt-1 text-center text-[11px] text-ink-400">Bulan ke-</p>
+      <p class="mt-1 text-center text-[11px] text-ink-500 dark:text-ink-400">Bulan ke-</p>
     </div>
 
     <!-- ── Tabel: kembaran grafik yang bisa dibaca tanpa warna ──────────── -->
-    <div v-show="showTable" class="max-h-72 overflow-y-auto rounded-xl border border-ink-200">
+    <div v-show="showTable" class="max-h-72 overflow-y-auto rounded-xl border border-ink-200/50 dark:border-white/[0.08]">
       <table class="w-full text-left text-sm">
-        <thead class="sticky top-0 bg-cream-50 text-xs text-ink-500">
+        <thead class="sticky top-0 bg-ink-50 dark:bg-ink-800 text-xs text-ink-600 dark:text-ink-400">
           <tr>
             <th scope="col" class="px-3 py-2 font-medium">Bulan</th>
             <th scope="col" class="px-3 py-2 text-right font-medium">Sisa utang</th>
@@ -348,22 +374,30 @@ const summaryLabel = computed(
             <th scope="col" class="px-3 py-2 text-right font-medium">Bunga</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-ink-100">
-          <tr v-for="point in points" :key="point.month" class="even:bg-ink-50/40">
-            <th scope="row" class="px-3 py-1.5 text-xs font-medium text-ink-600">
+        <tbody class="divide-y divide-ink-100 dark:divide-white/[0.08]">
+          <tr v-for="point in points" :key="point.month" class="even:bg-white/50 dark:even:bg-white/[0.02]">
+            <th scope="row" class="px-3 py-1.5 text-xs font-medium text-ink-600 dark:text-ink-400">
               {{ point.month === 0 ? 'Awal' : point.month }}
-              <span v-if="point.cleared.length" class="ml-1 font-normal text-sage-700">
+              <span v-if="point.cleared.length" class="ml-1 font-normal text-sage-600 dark:text-sage-400">
                 · {{ point.cleared.join(', ') }} lunas
               </span>
             </th>
-            <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-800">
+            <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-900 dark:text-cream-50">
               {{ formatIDR(point.remaining) }}
             </td>
-            <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-500">
+            <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-600 dark:text-ink-400">
               {{ point.month === 0 ? '—' : formatIDR(point.paid) }}
             </td>
-            <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-500">
-              {{ point.month === 0 ? '—' : formatIDR(point.cumulativeInterest) }}
+            <td class="px-3 py-1.5 text-right text-xs tabular-nums text-ink-600 dark:text-ink-400">
+              <template v-if="point.month === 0">
+                -
+              </template>
+              <template v-else-if="hasOnlySimplifiedDebts">
+                All-in
+              </template>
+              <template v-else>
+                {{ formatIDR(point.cumulativeInterest) }}
+              </template>
             </td>
           </tr>
         </tbody>

@@ -2,11 +2,8 @@
 import { computed } from 'vue'
 
 /**
- * Penanda posisi di alur 5 langkah. Tujuannya menenangkan: user bisa melihat
- * bahwa yang tersisa sedikit, dan langkah sebelumnya sudah benar-benar selesai.
- *
- * Label di sini sengaja lebih pendek daripada di navigasi header: lima kolom
- * harus muat berdampingan di layar 640px tanpa saling menabrak.
+ * Penanda posisi di alur 5 langkah.
+ * Tampilan disesuaikan dengan dark theme dari halaman alur.
  */
 const props = defineProps<{ current: number }>()
 
@@ -24,55 +21,50 @@ const percent = computed(() => ((props.current - 1) / (steps.length - 1)) * 100)
 <template>
   <div>
     <div class="flex items-center justify-between gap-2">
-      <p class="text-xs font-semibold tracking-widest text-brand-600 uppercase">
+      <p class="text-[10px] font-semibold tracking-[0.18em] text-brand-400 uppercase">
         Langkah {{ current }} dari {{ steps.length }}
       </p>
-      <p class="text-xs text-ink-400">{{ steps[current - 1]?.label }}</p>
+      <p class="text-[10px] text-ink-500">{{ steps[current - 1]?.label }}</p>
     </div>
 
-    <!-- Rel progres -->
+    <!-- Progress track -->
     <div class="relative mt-3">
-      <div class="h-1 rounded-full bg-ink-200/70" />
+      <!-- Track background -->
+      <div class="h-[3px] rounded-full bg-ink-200 dark:bg-white/[0.08]" />
+      <!-- Track fill -->
       <div
-        class="absolute top-0 left-0 h-1 rounded-full bg-linear-to-r from-brand-500 to-brand-700 transition-all duration-500 ease-out"
+        class="absolute top-0 left-0 h-[3px] rounded-full transition-all duration-500 ease-out"
+        style="background: linear-gradient(90deg, var(--color-brand-500), var(--color-brand-400))"
         :style="{ width: `${percent}%` }"
       />
 
-      <ol class="mt-3 flex justify-between">
+      <!-- Step dots -->
+      <ol class="mt-3.5 flex justify-between">
         <li
           v-for="(step, index) in steps"
           :key="step.to"
           class="flex flex-col items-center gap-1.5 text-center"
           :class="index === 0 ? 'items-start' : index === steps.length - 1 ? 'items-end' : ''"
         >
-          <span
-            class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold transition"
-            :class="
-              index + 1 < current
-                ? 'border-sage-300 bg-sage-100 text-sage-700'
-                : index + 1 === current
-                  ? 'border-brand-600 bg-brand-600 text-cream-50 shadow-brand'
-                  : 'border-ink-200 bg-cream-50 text-ink-400'
-            "
-          >
-            <svg
-              v-if="index + 1 < current"
-              class="h-3.5 w-3.5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
+          <NuxtLink :to="step.to" class="focus-ring dark:focus-ring-dark block rounded-full">
+            <span
+              class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold transition-all duration-300"
+              :class="
+                index + 1 < current
+                  ? 'border-sage-600/40 bg-sage-100/50 text-sage-600 dark:bg-sage-900/60 dark:text-sage-400'
+                  : index + 1 === current
+                    ? 'border-brand-500 bg-brand-600 text-cream-50 shadow-brand'
+                    : 'border-ink-200 bg-white text-ink-400 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-ink-600'
+              "
             >
-              <path
-                fill-rule="evenodd"
-                d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <template v-else>{{ index + 1 }}</template>
-          </span>
+              <Icon name="lucide:check" v-if="index + 1 < current" class="h-3.5 w-3.5" aria-hidden="true" />
+              <template v-else>{{ index + 1 }}</template>
+            </span>
+          </NuxtLink>
+
           <span
             class="hidden text-[11px] leading-tight sm:block"
-            :class="index + 1 === current ? 'font-medium text-brand-700' : 'text-ink-400'"
+            :class="index + 1 === current ? 'font-medium text-brand-600 dark:text-brand-400' : 'text-ink-400 dark:text-ink-600'"
           >
             {{ step.label }}
           </span>

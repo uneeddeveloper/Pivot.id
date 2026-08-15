@@ -1,10 +1,47 @@
 import tailwindcss from '@tailwindcss/vite'
 
+/**
+ * Origin publik aplikasi, dipakai @sidebase/nuxt-auth untuk menyusun URL callback.
+ *
+ * PENTING: modul `nuxt-auth` memasang Nitro plugin `assertOrigin` yang MELEMPAR
+ * error saat server start kalau origin tidak ketemu di production. Di Vercel itu
+ * berarti seluruh serverless function gagal boot — semua halaman 500
+ * (FUNCTION_INVOCATION_FAILED), bukan cuma /api/auth.
+ *
+ * Set `AUTH_ORIGIN` di Vercel → Settings → Environment Variables ke domain tetap
+ * (mis. https://pivot.vercel.app). `VERCEL_PROJECT_PRODUCTION_URL` hanya jaring
+ * pengaman supaya situs tetap hidup kalau env var itu lupa diisi — URL-nya ikut
+ * berubah tiap deploy, jadi jangan diandalkan untuk OAuth Google.
+ */
+const authOrigin =
+  process.env.AUTH_ORIGIN ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : '') ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', '@sidebase/nuxt-auth', '@nuxtjs/color-mode', '@nuxt/icon'],
+  
+  colorMode: {
+    classSuffix: '', // Important for Tailwind CSS (uses .dark instead of .dark-mode)
+  },
+
+  auth: {
+    // Pada Vercel, WAJIB set Environment Variable:
+    // AUTH_ORIGIN = https://<domain-vercel>.vercel.app
+    // AUTH_SECRET = <string-acak>
+    //
+    // Dikosongkan saat dev supaya origin diambil dari request (localhost:3000,
+    // port berapa pun). Lihat komentar `authOrigin` di atas.
+    baseURL: authOrigin ? `${authOrigin}/api/auth` : undefined,
+    provider: {
+      type: 'authjs',
+    },
+  },
 
   css: ['~/assets/css/main.css'],
 
@@ -12,16 +49,11 @@ export default defineNuxtConfig({
    * Kunci di luar `public` HANYA terbaca di sisi server (server/**). Token
    * Sumopod dan SerpApi tidak boleh sampai ke bundel browser — itu sebabnya
    * seluruh pemanggilan LLM & pencarian lowongan lewat route di `server/api`.
+   *
+   * DATABASE_URL untuk Prisma dibaca langsung dari environment (tidak perlu
+   * di sini) karena Prisma Client tidak menggunakan useRuntimeConfig().
    */
   runtimeConfig: {
-    mysql: {
-      host: process.env.MYSQL_HOST || '127.0.0.1',
-      port: Number(process.env.MYSQL_PORT || 3306),
-      user: process.env.MYSQL_USER || 'root',
-      password: process.env.MYSQL_PASSWORD || '',
-      database: process.env.MYSQL_DATABASE || 'rintisulang',
-      connectionLimit: Number(process.env.MYSQL_CONNECTION_LIMIT || 10),
-    },
     sumopod: {
       apiKey: process.env.SUMOPOD_API_KEY || '',
       baseUrl: process.env.SUMOPOD_BASE_URL || 'https://ai.sumopod.com/v1',
@@ -79,7 +111,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700&display=swap',
         },
       ],
     },

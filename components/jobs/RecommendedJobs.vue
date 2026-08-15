@@ -130,17 +130,7 @@ const applicable = computed(() => matches.value.filter((match) => match.job.appl
 
     <!-- Sedang memuat -->
     <div v-if="loading" class="mt-5 flex items-center gap-3 text-sm text-ink-500">
-      <svg
-        class="h-4 w-4 animate-spin"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        aria-hidden="true"
-      >
-        <circle cx="10" cy="10" r="7" class="opacity-25" />
-        <path d="M17 10a7 7 0 0 0-7-7" stroke-linecap="round" />
-      </svg>
+      <Icon name="lucide:loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
       Mencari lowongan yang sedang dibuka…
     </div>
 
