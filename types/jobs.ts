@@ -55,6 +55,11 @@ export interface JobMatch {
   missing: string[]
   /** 0..1 porsi keterampilan lowongan yang sudah terpenuhi. */
   coverage: number
+  /**
+   * Kecocokan lokasi lowongan dengan lokasi yang dicari user.
+   * `null` bila user tidak mengisi lokasi (cari se-Indonesia, tanpa preferensi).
+   */
+  locationMatch: boolean | null
 }
 
 export interface JobSearchMeta {

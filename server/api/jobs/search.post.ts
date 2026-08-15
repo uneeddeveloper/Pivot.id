@@ -1,6 +1,12 @@
 import { z } from 'zod'
 import type { JobListing, JobMatch, JobSearchResponse } from '../../../types/jobs'
-import { fetchGoogleJobs, isJobSearchConfigured, JobSearchUnavailableError } from '../../utils/serpapi'
+import {
+  fetchGoogleJobs,
+  fetchGoogleJobsNationwide,
+  isJobSearchConfigured,
+  JobSearchUnavailableError,
+  type RawGoogleJob,
+} from '../../utils/serpapi'
 import { normalizeJobs } from '../../utils/jobNormalizer'
 import {
   findFreshSearch,
@@ -43,8 +49,45 @@ const BodySchema = z.object({
   refresh: z.boolean().default(false),
 })
 
+/** Lepas diakritik & tanda baca supaya perbandingan lokasi tidak terlalu kaku. */
+function normalizeLocationText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Cocokkan lokasi lowongan dengan lokasi yang diminta user.
+ *   `null`  — user tidak mengisi lokasi (cari se-Indonesia), tidak ada preferensi.
+ *   `true`  — lowongan remote, atau teks lokasinya memuat lokasi yang dicari.
+ *   `false` — lowongan onsite di daerah lain.
+ *
+ * Dipakai untuk MENGURUTKAN, bukan menyaring — lowongan beda daerah tetap
+ * tampil, hanya turun peringkat. Menyembunyikannya sepenuhnya berisiko
+ * mengosongkan halaman untuk kota kecil yang lowongannya jarang ditandai
+ * persis dengan nama kota itu di Google Jobs.
+ */
+function matchesLocation(job: JobListing, searchLocation: string): boolean | null {
+  if (!searchLocation) return null
+  if (job.isRemote) return true
+
+  const needle = normalizeLocationText(searchLocation)
+  if (!needle) return null
+
+  return normalizeLocationText(job.location).includes(needle)
+}
+
 /** Susun `JobMatch` dari lowongan + kondisi user. */
-function toMatch(job: JobListing, owned: Set<string>, minSalary: number): JobMatch {
+function toMatch(
+  job: JobListing,
+  owned: Set<string>,
+  minSalary: number,
+  searchLocation: string,
+): JobMatch {
   const ownedSkills = job.skills.filter((id) => owned.has(id))
   const missing = job.skills.filter((id) => !owned.has(id))
 
@@ -57,6 +100,7 @@ function toMatch(job: JobListing, owned: Set<string>, minSalary: number): JobMat
     owned: ownedSkills,
     missing,
     coverage: job.skills.length === 0 ? 0 : ownedSkills.length / job.skills.length,
+    locationMatch: matchesLocation(job, searchLocation),
   }
 }
 
@@ -88,7 +132,14 @@ export default defineEventHandler(async (event): Promise<JobSearchResponse> => {
     })
   }
 
-  const location = body.location?.trim() || config.serpapi.location
+  // `locationInput` adalah lokasi APA ADANYA dari user (bisa kosong).
+  // `fetchGoogleJobs` yang menjatuhkannya ke JOB_SEARCH_LOCATION bila kosong —
+  // Google Jobs wajib diberi satu titik lokasi, tidak punya mode "seluruh
+  // negara" (lihat catatan di server/utils/serpapi.ts). `location` di bawah
+  // ini cuma label untuk cache key & tampilan supaya kolom kosong terbaca
+  // "Seluruh Indonesia", bukan string default env yang mungkin membingungkan.
+  const locationInput = body.location?.trim() ?? ''
+  const location = locationInput || 'Seluruh Indonesia'
   const identity = { query: searchQuery, location, remoteOnly: body.remoteOnly, roleId }
 
   const owned = new Set(body.ownedSkills)
@@ -103,11 +154,17 @@ export default defineEventHandler(async (event): Promise<JobSearchResponse> => {
     const hiddenByValidation = listings.length - valid.length
 
     const matches = valid
-      .map((job) => toMatch(job, owned, body.minSalary))
+      .map((job) => toMatch(job, owned, body.minSalary, locationInput))
       .sort((a, b) => {
-        // Yang menutup Target Income lebih dulu, lalu yang keterampilannya
-        // paling banyak sudah dimiliki, lalu yang iklannya paling meyakinkan.
+        // Yang menutup Target Income lebih dulu, lalu yang lokasinya benar-benar
+        // cocok dengan yang dicari, lalu keterampilan paling banyak dimiliki,
+        // baru yang iklannya paling meyakinkan.
         if (a.meetsTarget !== b.meetsTarget) return a.meetsTarget ? -1 : 1
+
+        const locationRank = (value: boolean | null) => (value === true ? 2 : value === null ? 1 : 0)
+        const locationDelta = locationRank(b.locationMatch) - locationRank(a.locationMatch)
+        if (locationDelta !== 0) return locationDelta
+
         if (b.coverage !== a.coverage) return b.coverage - a.coverage
         return b.job.qualityScore - a.job.qualityScore
       })
@@ -160,7 +217,30 @@ export default defineEventHandler(async (event): Promise<JobSearchResponse> => {
   }
 
   try {
-    const raw = await fetchGoogleJobs(identity)
+    // Lokasi kosong = cari se-Indonesia: fan-out ke beberapa kota besar
+    // sekaligus (lihat `fetchGoogleJobsNationwide`), karena Google Jobs tidak
+    // punya mode "seluruh negara" bawaan. Lokasi terisi = satu titik lokasi,
+    // tapi disusuri sampai beberapa halaman kalau hasilnya lebih dari satu
+    // halaman — tidak lagi berhenti di 10 hasil pertama begitu saja.
+    let raw: RawGoogleJob[]
+    if (locationInput) {
+      raw = await fetchGoogleJobs({
+        query: searchQuery,
+        location: locationInput,
+        remoteOnly: body.remoteOnly,
+      })
+    } else {
+      const nationwide = await fetchGoogleJobsNationwide({
+        query: searchQuery,
+        remoteOnly: body.remoteOnly,
+      })
+      raw = nationwide.jobs
+      if (nationwide.failedLocations.length > 0) {
+        warnings.push(
+          `Gagal mengambil lowongan dari ${nationwide.failedLocations.join(', ')} — hasil dari kota lain tetap ditampilkan.`,
+        )
+      }
+    }
     const skills = await loadSkills()
     const normalized = await normalizeJobs(raw, skills)
     warnings.push(...normalized.warnings)

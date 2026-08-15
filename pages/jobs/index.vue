@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useCareerStore } from '~/stores/career'
 import { useCatalogStore } from '~/stores/catalog'
 import { useFinancialStore } from '~/stores/financial'
@@ -49,6 +49,36 @@ const visibleMatches = computed(() =>
 const belowTargetCount = computed(() => matches.value.filter((match) => !match.meetsTarget).length)
 
 const canSearch = computed(() => Boolean(roleId.value || freeQuery.value.trim()))
+
+// ── Pagination ───────────────────────────────────────────────────────────
+// Hasilnya TIDAK dipotong di server — /api/jobs/search sudah mengembalikan
+// semua lowongan yang ditemukan. Halaman 10-per-halaman ini murni supaya
+// kartu lowongan tidak menumpuk jadi satu scroll raksasa.
+const JOBS_PER_PAGE = 10
+const currentPage = ref(1)
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(visibleMatches.value.length / JOBS_PER_PAGE)),
+)
+
+const pagedMatches = computed(() => {
+  const start = (currentPage.value - 1) * JOBS_PER_PAGE
+  return visibleMatches.value.slice(start, start + JOBS_PER_PAGE)
+})
+
+/** Balik ke halaman 1 setiap kali set hasil yang ditampilkan berubah. */
+watch(visibleMatches, () => {
+  currentPage.value = 1
+})
+
+function goToPage(page: number) {
+  currentPage.value = Math.min(Math.max(1, page), totalPages.value)
+  // Supaya user tidak bingung berada di bagian bawah daftar lama saat kartu
+  // halaman baru sudah berganti.
+  if (typeof window !== 'undefined') {
+    document.getElementById('jobs-results-top')?.scrollIntoView({ behavior: 'smooth' })
+  }
+}
 
 async function search(refresh = false) {
   if (!canSearch.value || searching.value) return
@@ -201,7 +231,7 @@ if (roleId.value) await search()
         <FormField
           label="Lokasi"
           field-id="job-location"
-          hint="Kosongkan untuk mencari se-Indonesia."
+          hint="Kosongkan untuk cakupan nasional — hasilnya lebih sedikit karena kebanyakan lowongan ditandai per kota. Isi nama kota untuk hasil terbanyak."
         >
           <input
             id="job-location"
@@ -280,15 +310,20 @@ if (roleId.value) await search()
     </div>
 
     <!-- ── Hasil ────────────────────────────────────────────────────────── -->
-    <section v-if="result" class="mt-8">
+    <section v-if="result" id="jobs-results-top" class="mt-8 scroll-mt-6">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-ink-900">
-            {{ matches.length }} lowongan ditemukan
+            {{ visibleMatches.length }} lowongan ditemukan
           </h2>
           <p class="mt-1.5 max-w-xl text-sm leading-relaxed text-ink-500">
             Diurutkan dari yang paling dekat dengan kondisimu: menutup Target Income lebih dulu,
-            lalu yang keterampilannya paling banyak sudah kamu punya.
+            lalu yang lokasinya paling cocok, lalu yang keterampilannya paling banyak sudah kamu
+            punya.
+            <template v-if="totalPages > 1">
+              Ditampilkan {{ JOBS_PER_PAGE }} per halaman — halaman
+              {{ currentPage }} dari {{ totalPages }}.
+            </template>
           </p>
         </div>
 
@@ -313,9 +348,9 @@ if (roleId.value) await search()
         (meminta biaya di muka, perusahaan tidak jelas, atau pola serupa).
       </p>
 
-      <div v-if="visibleMatches.length" class="mt-5 grid gap-4 lg:grid-cols-2">
+      <div v-if="pagedMatches.length" class="mt-5 grid gap-4 lg:grid-cols-2">
         <JobCard
-          v-for="match in visibleMatches"
+          v-for="match in pagedMatches"
           :key="match.job.id"
           :match="match"
           :target-income="targetIncome"
@@ -329,6 +364,35 @@ if (roleId.value) await search()
           papan lowongan berganti isi hampir tiap hari.
         </p>
       </BaseCard>
+
+      <!-- ── Pagination ─────────────────────────────────────────────────── -->
+      <nav
+        v-if="totalPages > 1"
+        aria-label="Navigasi halaman lowongan"
+        class="mt-6 flex flex-wrap items-center justify-center gap-2"
+      >
+        <BaseButton
+          variant="ghost"
+          size="sm"
+          :disabled="currentPage === 1"
+          @click="goToPage(currentPage - 1)"
+        >
+          ← Sebelumnya
+        </BaseButton>
+
+        <span class="px-2 text-sm tabular-nums text-ink-500">
+          {{ currentPage }} / {{ totalPages }}
+        </span>
+
+        <BaseButton
+          variant="ghost"
+          size="sm"
+          :disabled="currentPage === totalPages"
+          @click="goToPage(currentPage + 1)"
+        >
+          Berikutnya →
+        </BaseButton>
+      </nav>
     </section>
 
     <BaseCard v-else-if="!searching" tone="soft" class="mt-8">

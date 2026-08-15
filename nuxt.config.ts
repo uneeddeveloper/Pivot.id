@@ -31,6 +31,9 @@ export default defineNuxtConfig({
     },
     serpapi: {
       apiKey: process.env.SERPAPI_KEY || '',
+      // Dipakai apa adanya sebagai parameter `location` ke Google Jobs saat
+      // user mengosongkan kolom lokasi — WAJIB berupa nilai yang valid, bukan
+      // label bebas. Lihat catatan panjang di server/utils/serpapi.ts.
       location: process.env.JOB_SEARCH_LOCATION || 'Indonesia',
       hl: process.env.JOB_SEARCH_HL || 'id',
       gl: process.env.JOB_SEARCH_GL || 'id',

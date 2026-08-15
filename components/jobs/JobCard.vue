@@ -63,6 +63,9 @@ const excerpt = computed(() => {
           <span v-if="job.company" class="font-medium">{{ job.company }}</span>
           <span v-if="job.company && job.location" class="text-ink-300"> · </span>
           <span v-if="job.location">{{ job.location }}</span>
+          <span v-if="match.locationMatch === false" class="text-ink-400">
+            · di luar daerah yang kamu cari
+          </span>
         </p>
       </div>
 
